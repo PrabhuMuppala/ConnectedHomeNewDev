@@ -1,0 +1,31 @@
+{
+	"name": "NTW_FTP_Datasets",
+	"properties": {
+		"description": "Dataset to represent any files from NTW_FTP server",
+		"linkedServiceName": {
+			"referenceName": "ls_ftp_ntw_server",
+			"type": "LinkedServiceReference"
+		},
+		"parameters": {
+			"SRC_DATASET_PATH": {
+				"type": "String",
+				"defaultValue": "IN/"
+			}
+		},
+		"folder": {
+			"name": "DataSets_4_DIF"
+		},
+		"annotations": [],
+		"type": "Binary",
+		"typeProperties": {
+			"location": {
+				"type": "FtpServerLocation",
+				"folderPath": {
+					"value": "@dataset().SRC_DATASET_PATH",
+					"type": "Expression"
+				}
+			}
+		}
+	},
+	"type": "Microsoft.DataFactory/factories/datasets"
+}

@@ -1,0 +1,150 @@
+{
+	"name": "PL_RDS_BLOB_CLEANER",
+	"properties": {
+		"activities": [
+			{
+				"name": "Get Meta for RDS or ODS Folder",
+				"description": "get ls output of RDS stage to know if we need to call delete via DFS API or not ",
+				"type": "GetMetadata",
+				"dependsOn": [],
+				"policy": {
+					"timeout": "7.00:00:00",
+					"retry": 0,
+					"retryIntervalInSeconds": 30,
+					"secureOutput": false,
+					"secureInput": false
+				},
+				"userProperties": [],
+				"typeProperties": {
+					"dataset": {
+						"referenceName": "ds_blob_sink_4_hdfs",
+						"type": "DatasetReference",
+						"parameters": {
+							"RDS_STAGE_LOC": {
+								"value": "@pipeline().parameters.RDS_STAGE_LOC",
+								"type": "Expression"
+							},
+							"RDS_STAGE_FOLDER": {
+								"value": "@pipeline().parameters.RDS_STAGE_FOLDER",
+								"type": "Expression"
+							}
+						}
+					},
+					"fieldList": [
+						"exists",
+						"itemName",
+						"childItems"
+					],
+					"storeSettings": {
+						"type": "AzureBlobStorageReadSettings",
+						"recursive": true
+					},
+					"formatSettings": {
+						"type": "BinaryReadSettings"
+					}
+				}
+			},
+			{
+				"name": "If folder exists DELETE via DFS api",
+				"description": "call delete if ls -lrt resulted in child items ",
+				"type": "IfCondition",
+				"dependsOn": [
+					{
+						"activity": "Get Meta for RDS or ODS Folder",
+						"dependencyConditions": [
+							"Succeeded"
+						]
+					}
+				],
+				"userProperties": [],
+				"typeProperties": {
+					"expression": {
+						"value": "@activity('Get Meta for RDS or ODS Folder').output.exists",
+						"type": "Expression"
+					},
+					"ifTrueActivities": [
+						{
+							"name": "delete rds",
+							"description": "invoke deletion API for the specified folder and log the same !!",
+							"type": "Delete",
+							"dependsOn": [],
+							"policy": {
+								"timeout": "7.00:00:00",
+								"retry": 0,
+								"retryIntervalInSeconds": 30,
+								"secureOutput": false,
+								"secureInput": false
+							},
+							"userProperties": [],
+							"typeProperties": {
+								"dataset": {
+									"referenceName": "ds_4_deletion",
+									"type": "DatasetReference",
+									"parameters": {
+										"container": {
+											"value": "@pipeline().parameters.RDS_STAGE_LOC",
+											"type": "Expression"
+										},
+										"path": {
+											"value": "@pipeline().parameters.RDS_STAGE_FOLDER",
+											"type": "Expression"
+										}
+									}
+								},
+								"logStorageSettings": {
+									"linkedServiceName": {
+										"referenceName": "ls_az_stg_acc",
+										"type": "LinkedServiceReference"
+									},
+									"path": {
+										"value": "@concat(variables('V_LOGS_CONTAINER') ,'/', pipeline().parameters.SRC_TYPE, '/', pipeline().parameters.RDS_STAGE_LOC, '/', pipeline().parameters.RDS_STAGE_FOLDER)",
+										"type": "Expression"
+									}
+								},
+								"enableLogging": true,
+								"storeSettings": {
+									"type": "AzureBlobFSReadSettings",
+									"recursive": true
+								}
+							}
+						}
+					]
+				}
+			}
+		],
+		"parameters": {
+			"RDS_STAGE_LOC": {
+				"type": "string",
+				"defaultValue": "rogers-eda-raw-prd-sensitive-storage/networth/nw-rds-stage/HDFS-STAGE"
+			},
+			"RDS_STAGE_FOLDER": {
+				"type": "string",
+				"defaultValue": "default.address_name_link_adf"
+			},
+			"SRC_TYPE": {
+				"type": "string",
+				"defaultValue": "HDFS"
+			},
+			"DEST_TYPE": {
+				"type": "string",
+				"defaultValue": "NA"
+			}
+		},
+		"variables": {
+			"V_RDS_STAGE_LOC": {
+				"type": "String",
+				"defaultValue": "rogers-eda-raw-prd-sensitive-storage/networth/nw-rds-stage"
+			},
+			"V_LOGS_CONTAINER": {
+				"type": "String",
+				"defaultValue": "logs"
+			}
+		},
+		"folder": {
+			"name": "Data Ingestion FrmWrk"
+		},
+		"annotations": [],
+		"lastPublishTime": "2022-03-09T16:28:00Z"
+	},
+	"type": "Microsoft.DataFactory/factories/pipelines"
+}

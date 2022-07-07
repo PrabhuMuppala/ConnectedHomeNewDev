@@ -1,0 +1,12 @@
+{
+	"name": "Networth_Key_Vault",
+	"type": "Microsoft.DataFactory/factories/linkedservices",
+	"properties": {
+		"description": "Networth key vault",
+		"annotations": [],
+		"type": "AzureKeyVault",
+		"typeProperties": {
+			"baseUrl": "https://ccnpedmtnetworthkv01.vault.azure.net/"
+		}
+	}
+}

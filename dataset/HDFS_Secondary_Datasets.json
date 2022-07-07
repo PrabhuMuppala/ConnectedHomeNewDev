@@ -1,0 +1,21 @@
+{
+	"name": "HDFS_Secondary_Datasets",
+	"properties": {
+		"description": "HA Dataset from HA webHDFS url ",
+		"linkedServiceName": {
+			"referenceName": "ls_hdfs_secondary_on_prem",
+			"type": "LinkedServiceReference"
+		},
+		"folder": {
+			"name": "DataSets_4_DIF"
+		},
+		"annotations": [],
+		"type": "Binary",
+		"typeProperties": {
+			"location": {
+				"type": "HdfsLocation"
+			}
+		}
+	},
+	"type": "Microsoft.DataFactory/factories/datasets"
+}

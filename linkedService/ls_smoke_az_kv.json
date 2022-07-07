@@ -1,0 +1,12 @@
+{
+	"name": "ls_smoke_az_kv",
+	"type": "Microsoft.DataFactory/factories/linkedservices",
+	"properties": {
+		"description": "Key Vault for Prod Linked Service",
+		"annotations": [],
+		"type": "AzureKeyVault",
+		"typeProperties": {
+			"baseUrl": "https://dmtnpesmokekeyvault.vault.azure.net/"
+		}
+	}
+}

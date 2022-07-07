@@ -1,0 +1,24 @@
+{
+	"name": "ENIQ_EDL_ORC",
+	"properties": {
+		"linkedServiceName": {
+			"referenceName": "ls_az_stg_acc",
+			"type": "LinkedServiceReference"
+		},
+		"folder": {
+			"name": "DataSets_4_DIF"
+		},
+		"annotations": [],
+		"type": "Orc",
+		"typeProperties": {
+			"location": {
+				"type": "AzureBlobStorageLocation",
+				"folderPath": "DC_E_ERBS_EUTRANCELLFDD_V_DAY",
+				"container": "rogers-eda-raw-prd-sensitive-storage/networth/eniq.db"
+			},
+			"enablePhysicalSchema": true
+		},
+		"schema": []
+	},
+	"type": "Microsoft.DataFactory/factories/datasets"
+}

@@ -1,0 +1,38 @@
+{
+	"name": "BLOB_Binary_Datasets",
+	"properties": {
+		"description": "Generic Dataset to represent any blob as binary",
+		"linkedServiceName": {
+			"referenceName": "ls_az_stg_acc",
+			"type": "LinkedServiceReference"
+		},
+		"parameters": {
+			"CONTAINER": {
+				"type": "string",
+				"defaultValue": "nw-rds"
+			},
+			"FOLDER_FILE": {
+				"type": "string"
+			}
+		},
+		"folder": {
+			"name": "DataSets_4_DIF"
+		},
+		"annotations": [],
+		"type": "Binary",
+		"typeProperties": {
+			"location": {
+				"type": "AzureBlobStorageLocation",
+				"folderPath": {
+					"value": "@dataset().FOLDER_FILE",
+					"type": "Expression"
+				},
+				"container": {
+					"value": "@dataset().CONTAINER",
+					"type": "Expression"
+				}
+			}
+		}
+	},
+	"type": "Microsoft.DataFactory/factories/datasets"
+}

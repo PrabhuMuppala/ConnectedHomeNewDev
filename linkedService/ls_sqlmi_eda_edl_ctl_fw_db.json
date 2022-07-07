@@ -1,0 +1,16 @@
+{
+	"name": "ls_sqlmi_eda_edl_ctl_fw_db",
+	"type": "Microsoft.DataFactory/factories/linkedservices",
+	"properties": {
+		"description": "Linked Service to connect to EDA_EDL_CTL_FW Database",
+		"annotations": [],
+		"type": "AzureSqlMI",
+		"typeProperties": {
+			"connectionString": "Integrated Security=False;Encrypt=True;Connection Timeout=30;Data Source=mazcacnpedmtsssqlmi01.e23cfbdede68.database.windows.net;Initial Catalog=EDA_EDL_Ctl_FW"
+		},
+		"connectVia": {
+			"referenceName": "networthir",
+			"type": "IntegrationRuntimeReference"
+		}
+	}
+}

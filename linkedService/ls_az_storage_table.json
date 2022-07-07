@@ -1,0 +1,17 @@
+{
+	"name": "ls_az_storage_table",
+	"type": "Microsoft.DataFactory/factories/linkedservices",
+	"properties": {
+		"description": "Linked Service for connecting to storage tables. Mainly for load control and metadata control tables  ",
+		"annotations": [],
+		"type": "AzureTableStorage",
+		"typeProperties": {
+			"connectionString": "DefaultEndpointsProtocol=https;AccountName=mazcacnpedmtssdls;EndpointSuffix=core.windows.net;",
+			"encryptedCredential": "eyJDcmVkZW50aWFsSWQiOiIwMGQ3ZTA2YS0wYzExLTQxYzUtOWE5Yy0wOWJjMjIzNjhmMDEiLCJWZXJzaW9uIjoiMi4wIiwiQ2xhc3NUeXBlIjoiTWljcm9zb2Z0LkRhdGFQcm94eS5Db3JlLkludGVyU2VydmljZURhdGFDb250cmFjdC5DcmVkZW50aWFsU1UwNkNZMTQifQ=="
+		},
+		"connectVia": {
+			"referenceName": "networthir",
+			"type": "IntegrationRuntimeReference"
+		}
+	}
+}

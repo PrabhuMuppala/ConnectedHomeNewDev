@@ -1,0 +1,82 @@
+{
+	"name": "PL_SRC_COUNT_ZERO_CHECK",
+	"properties": {
+		"activities": [
+			{
+				"name": "If src rec count is 0",
+				"description": "If no src record was put on to RDS-STAGE then lets voice out to load control and abort the flow",
+				"type": "IfCondition",
+				"dependsOn": [],
+				"userProperties": [],
+				"typeProperties": {
+					"expression": {
+						"value": "@equals(int(pipeline().parameters.SRC_COUNT_DERIVED),0)",
+						"type": "Expression"
+					},
+					"ifTrueActivities": [
+						{
+							"name": "set output_message 4 rec count 0",
+							"description": "This is more like a err or info message to look upon",
+							"type": "SetVariable",
+							"dependsOn": [],
+							"userProperties": [],
+							"typeProperties": {
+								"variableName": "V_OUTPUT_MESSAGE",
+								"value": "Either No File in staging to ingest to blob or src rec count is 0. Please check."
+							}
+						},
+						{
+							"name": "Raise Exception Err_No_Src_Record_loaded",
+							"description": "No Records :( hence marking the job for Failure !!",
+							"type": "AppendVariable",
+							"dependsOn": [
+								{
+									"activity": "set output_message 4 rec count 0",
+									"dependencyConditions": [
+										"Succeeded"
+									]
+								}
+							],
+							"userProperties": [],
+							"typeProperties": {
+								"variableName": "V_RAISE_EXCEPTION",
+								"value": {
+									"value": "@int(variables('V_OUTPUT_MESSAGE'))",
+									"type": "Expression"
+								}
+							}
+						}
+					]
+				}
+			}
+		],
+		"parameters": {
+			"SRC_COUNT_DERIVED": {
+				"type": "string",
+				"defaultValue": "0"
+			}
+		},
+		"variables": {
+			"V_SRC_COUNT_DERIVED": {
+				"type": "String",
+				"defaultValue": "0"
+			},
+			"V_OUTPUT_MESSAGE": {
+				"type": "String",
+				"defaultValue": "NULL"
+			},
+			"V_RAISE_EXCEPTION": {
+				"type": "Array",
+				"defaultValue": [
+					"NULL"
+				]
+			}
+		},
+		"folder": {
+			"name": "Data Ingestion FrmWrk"
+		},
+		"annotations": [],
+		"lastPublishTime": "2022-03-09T16:27:59Z"
+	},
+	"type": "Microsoft.DataFactory/factories/pipelines"
+}

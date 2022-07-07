@@ -1,0 +1,14 @@
+{
+	"name": "ls_cradlepoint_rest_api",
+	"type": "Microsoft.DataFactory/factories/linkedservices",
+	"properties": {
+		"description": "This is for connecting to Cradlepoint REST endpoints",
+		"annotations": [],
+		"type": "RestService",
+		"typeProperties": {
+			"url": "https://www.cradlepointecm.com/api/v2",
+			"enableServerCertificateValidation": true,
+			"authenticationType": "Anonymous"
+		}
+	}
+}

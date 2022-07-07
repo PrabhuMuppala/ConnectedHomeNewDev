@@ -1,0 +1,21 @@
+{
+	"name": "HDFS_Datasets",
+	"properties": {
+		"description": "A Generic Dataset for representing HDFS files in Binary format ",
+		"linkedServiceName": {
+			"referenceName": "UserCredentials_A",
+			"type": "LinkedServiceReference"
+		},
+		"folder": {
+			"name": "DataSets_4_DIF"
+		},
+		"annotations": [],
+		"type": "Binary",
+		"typeProperties": {
+			"location": {
+				"type": "HdfsLocation"
+			}
+		}
+	},
+	"type": "Microsoft.DataFactory/factories/datasets"
+}

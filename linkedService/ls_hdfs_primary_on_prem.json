@@ -1,0 +1,27 @@
+{
+	"name": "ls_hdfs_primary_on_prem",
+	"type": "Microsoft.DataFactory/factories/linkedservices",
+	"properties": {
+		"description": "Linked Service to connect to on-prem HDFS using webHDFS ",
+		"annotations": [],
+		"type": "Hdfs",
+		"typeProperties": {
+			"url": "http://ehdpdd109.dev.dmt.rogers.com:50070/webhdfs/v1/",
+			"authenticationType": "Windows",
+			"userName": "serv_netwr_maz_hdp_d@RCI.ROGERS.CA",
+			"password": {
+				"type": "AzureKeyVaultSecret",
+				"store": {
+					"referenceName": "AzureKeyVault1",
+					"type": "LinkedServiceReference"
+				},
+				"secretName": "secret-networth-hdfs-service-id-pwd",
+				"secretVersion": ""
+			}
+		},
+		"connectVia": {
+			"referenceName": "networthir",
+			"type": "IntegrationRuntimeReference"
+		}
+	}
+}

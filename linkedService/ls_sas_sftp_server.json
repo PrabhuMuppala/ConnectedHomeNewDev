@@ -1,0 +1,24 @@
+{
+	"name": "ls_sas_sftp_server",
+	"type": "Microsoft.DataFactory/factories/linkedservices",
+	"properties": {
+		"description": "Linked service to connect to SAS SFTP server",
+		"annotations": [],
+		"type": "Sftp",
+		"typeProperties": {
+			"host": "mdcdmtsasg01.rogers.com",
+			"port": 22,
+			"skipHostKeyValidation": true,
+			"authenticationType": "Basic",
+			"userName": "serv_smoke_sas_maz_p",
+			"password": {
+				"type": "AzureKeyVaultSecret",
+				"store": {
+					"referenceName": "ls_smoke_az_kv",
+					"type": "LinkedServiceReference"
+				},
+				"secretName": "secret-smoke-sas-sftp-pwd"
+			}
+		}
+	}
+}

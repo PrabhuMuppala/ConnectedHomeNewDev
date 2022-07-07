@@ -1,0 +1,621 @@
+{
+	"name": "PL_Updt ELT Execution",
+	"properties": {
+		"activities": [
+			{
+				"name": "updt control tables",
+				"description": "decide to update the metadata control with SUCCESS and not for FAILED ",
+				"type": "Switch",
+				"dependsOn": [
+					{
+						"activity": "Insrt EtlLoadControl_Status",
+						"dependencyConditions": [
+							"Succeeded"
+						]
+					}
+				],
+				"userProperties": [],
+				"typeProperties": {
+					"on": {
+						"value": "@pipeline().parameters.RUN_STATUS",
+						"type": "Expression"
+					},
+					"cases": [
+						{
+							"value": "FAILED",
+							"activities": [
+								{
+									"name": "Raise_Exception_Finally",
+									"description": "Call Raise Exception we got the FAILED status",
+									"type": "AppendVariable",
+									"dependsOn": [],
+									"userProperties": [],
+									"typeProperties": {
+										"variableName": "V_EXCEPTION_ARR",
+										"value": {
+											"value": "@array(pipeline().parameters.RUN_MESSAGE)",
+											"type": "Expression"
+										}
+									}
+								}
+							]
+						},
+						{
+							"value": "SUCCESS",
+							"activities": [
+								{
+									"name": "Upd METADATA DELTA VAL Aftr Dbricks_copy1",
+									"description": "Upd METADATA DELTA VAL ",
+									"type": "Copy",
+									"dependsOn": [],
+									"policy": {
+										"timeout": "7.00:00:00",
+										"retry": 0,
+										"retryIntervalInSeconds": 30,
+										"secureOutput": false,
+										"secureInput": false
+									},
+									"userProperties": [],
+									"typeProperties": {
+										"source": {
+											"type": "AzureTableSource",
+											"additionalColumns": [
+												{
+													"name": "NEW_DELTA_VALUE",
+													"value": {
+														"value": "@pipeline().parameters.CURR_DELTA_VALUE",
+														"type": "Expression"
+													}
+												},
+												{
+													"name": "NEW_WINDOW_START_TIME_UTC",
+													"value": {
+														"value": "@pipeline().parameters.PREV_DELTA_VALUE",
+														"type": "Expression"
+													}
+												},
+												{
+													"name": "NEW_WINDOW_END_TIME_UTC",
+													"value": {
+														"value": "@pipeline().parameters.CURR_DELTA_VALUE",
+														"type": "Expression"
+													}
+												}
+											],
+											"azureTableSourceQuery": {
+												"value": "@concat('PartitionKey eq ''', variables('V_METADATA_DEF_PARTITION_KEY'), '''',' and JOB_NAME eq ','''', pipeline().parameters.JOB_NAME, '''')",
+												"type": "Expression"
+											},
+											"azureTableSourceIgnoreTableNotFound": false
+										},
+										"sink": {
+											"type": "AzureTableSink",
+											"azureTableInsertType": "merge",
+											"azureTableDefaultPartitionKeyValue": "DEFAULT",
+											"azureTableRowKeyName": {
+												"value": "RowKey",
+												"type": "Expression"
+											},
+											"writeBatchSize": 10000
+										},
+										"enableStaging": false,
+										"dataIntegrationUnits": 2,
+										"translator": {
+											"type": "TabularTranslator",
+											"mappings": [
+												{
+													"source": {
+														"name": "PartitionKey",
+														"type": "String"
+													},
+													"sink": {
+														"name": "PartitionKey",
+														"type": "String"
+													}
+												},
+												{
+													"source": {
+														"name": "RowKey",
+														"type": "String"
+													},
+													"sink": {
+														"name": "RowKey",
+														"type": "String"
+													}
+												},
+												{
+													"source": {
+														"name": "Timestamp",
+														"type": "DateTimeOffset"
+													},
+													"sink": {
+														"name": "Timestamp",
+														"type": "DateTimeOffset"
+													}
+												},
+												{
+													"source": {
+														"name": "NEW_DELTA_VALUE",
+														"type": "String"
+													},
+													"sink": {
+														"name": "CURR_MAX_DELTA_COL_VALUE",
+														"type": "String"
+													}
+												},
+												{
+													"source": {
+														"name": "CURR_MAX_DELTA_COL_VALUE_FORMAT",
+														"type": "String"
+													},
+													"sink": {
+														"name": "CURR_MAX_DELTA_COL_VALUE_FORMAT",
+														"type": "String"
+													}
+												},
+												{
+													"source": {
+														"name": "DBFS_COALESCE",
+														"type": "String"
+													},
+													"sink": {
+														"name": "DBFS_COALESCE",
+														"type": "String"
+													}
+												},
+												{
+													"source": {
+														"name": "DBFS_FILE_FORMAT",
+														"type": "String"
+													},
+													"sink": {
+														"name": "DBFS_FILE_FORMAT",
+														"type": "String"
+													}
+												},
+												{
+													"source": {
+														"name": "DBFS_PARTITION_BY",
+														"type": "String"
+													},
+													"sink": {
+														"name": "DBFS_PARTITION_BY",
+														"type": "String"
+													}
+												},
+												{
+													"source": {
+														"name": "DBFS_SAVE_MODE",
+														"type": "String"
+													},
+													"sink": {
+														"name": "DBFS_SAVE_MODE",
+														"type": "String"
+													}
+												},
+												{
+													"source": {
+														"name": "DEST_TBL",
+														"type": "String"
+													},
+													"sink": {
+														"name": "DEST_TBL",
+														"type": "String"
+													}
+												},
+												{
+													"source": {
+														"name": "DEST_TYPE",
+														"type": "String"
+													},
+													"sink": {
+														"name": "DEST_TYPE",
+														"type": "String"
+													}
+												},
+												{
+													"source": {
+														"name": "IS_ACTIVE",
+														"type": "String"
+													},
+													"sink": {
+														"name": "IS_ACTIVE",
+														"type": "String"
+													}
+												},
+												{
+													"source": {
+														"name": "IS_AZ_AUDIT_COLS_2_ADD",
+														"type": "String"
+													},
+													"sink": {
+														"name": "IS_AZ_AUDIT_COLS_2_ADD",
+														"type": "String"
+													}
+												},
+												{
+													"source": {
+														"name": "JOB_NAME",
+														"type": "String"
+													},
+													"sink": {
+														"name": "JOB_NAME",
+														"type": "String"
+													}
+												},
+												{
+													"source": {
+														"name": "LOAD_TYPE",
+														"type": "String"
+													},
+													"sink": {
+														"name": "LOAD_TYPE",
+														"type": "String"
+													}
+												},
+												{
+													"source": {
+														"name": "ODS_LOC",
+														"type": "String"
+													},
+													"sink": {
+														"name": "ODS_LOC",
+														"type": "String"
+													}
+												},
+												{
+													"source": {
+														"name": "QRY",
+														"type": "String"
+													},
+													"sink": {
+														"name": "QRY",
+														"type": "String"
+													}
+												},
+												{
+													"source": {
+														"name": "RDS_STAGE_FILE_FOLDER",
+														"type": "String"
+													},
+													"sink": {
+														"name": "RDS_STAGE_FILE_FOLDER",
+														"type": "String"
+													}
+												},
+												{
+													"source": {
+														"name": "RDS_STAGE_FILE_FORMAT",
+														"type": "String"
+													},
+													"sink": {
+														"name": "RDS_STAGE_FILE_FORMAT",
+														"type": "String"
+													}
+												},
+												{
+													"source": {
+														"name": "RDS_STAGE_LOC",
+														"type": "String"
+													},
+													"sink": {
+														"name": "RDS_STAGE_LOC",
+														"type": "String"
+													}
+												},
+												{
+													"source": {
+														"name": "SRC_CUSTOM_WHERE_CLAUSE",
+														"type": "String"
+													},
+													"sink": {
+														"name": "SRC_CUSTOM_WHERE_CLAUSE",
+														"type": "String"
+													}
+												},
+												{
+													"source": {
+														"name": "SRC_DELTA_COL",
+														"type": "String"
+													},
+													"sink": {
+														"name": "SRC_DELTA_COL",
+														"type": "String"
+													}
+												},
+												{
+													"source": {
+														"name": "SRC_TBL_FILE_PATH",
+														"type": "String"
+													},
+													"sink": {
+														"name": "SRC_TBL_FILE_PATH",
+														"type": "String"
+													}
+												},
+												{
+													"source": {
+														"name": "SRC_TBL_PK_CSV",
+														"type": "String"
+													},
+													"sink": {
+														"name": "SRC_TBL_PK_CSV",
+														"type": "String"
+													}
+												},
+												{
+													"source": {
+														"name": "SRC_TYPE",
+														"type": "String"
+													},
+													"sink": {
+														"name": "SRC_TYPE",
+														"type": "String"
+													}
+												},
+												{
+													"source": {
+														"name": "NEW_WINDOW_END_TIME_UTC"
+													},
+													"sink": {
+														"name": "WINDOW_END_TIME_UTC",
+														"type": "String"
+													}
+												},
+												{
+													"source": {
+														"name": "NEW_WINDOW_START_TIME_UTC"
+													},
+													"sink": {
+														"name": "WINDOW_START_TIME_UTC",
+														"type": "String"
+													}
+												}
+											]
+										}
+									},
+									"inputs": [
+										{
+											"referenceName": "DS_ETL_LOAD_CONTROL",
+											"type": "DatasetReference",
+											"parameters": {
+												"AZ_STORAGE_TABLE": {
+													"value": "@variables('V_ELT_METADATA_TABLE')",
+													"type": "Expression"
+												}
+											}
+										}
+									],
+									"outputs": [
+										{
+											"referenceName": "DS_ETL_LOAD_CONTROL",
+											"type": "DatasetReference",
+											"parameters": {
+												"AZ_STORAGE_TABLE": "EltMetadataControl"
+											}
+										}
+									]
+								}
+							]
+						}
+					]
+				}
+			},
+			{
+				"name": "Insrt EtlLoadControl_Status",
+				"description": "Record the log entry into load control table for success or failure or message ",
+				"type": "Copy",
+				"dependsOn": [],
+				"policy": {
+					"timeout": "7.00:00:00",
+					"retry": 0,
+					"retryIntervalInSeconds": 30,
+					"secureOutput": false,
+					"secureInput": false
+				},
+				"userProperties": [],
+				"typeProperties": {
+					"source": {
+						"type": "AzureTableSource",
+						"additionalColumns": [
+							{
+								"name": "RUN_STATUS",
+								"value": {
+									"value": "@pipeline().parameters.RUN_STATUS",
+									"type": "Expression"
+								}
+							},
+							{
+								"name": "RUN_ID",
+								"value": {
+									"value": "@pipeline().parameters.EXEC_RUN_ID",
+									"type": "Expression"
+								}
+							},
+							{
+								"name": "RUN_MESSAGE",
+								"value": {
+									"value": "@pipeline().parameters.RUN_MESSAGE",
+									"type": "Expression"
+								}
+							}
+						],
+						"azureTableSourceQuery": {
+							"value": "@concat('PartitionKey eq ''', variables('V_METADATA_DEF_PARTITION_KEY'), '''',' and RowKey eq ','''', pipeline().parameters.JOB_NAME, '''')",
+							"type": "Expression"
+						},
+						"azureTableSourceIgnoreTableNotFound": false
+					},
+					"sink": {
+						"type": "AzureTableSink",
+						"azureTableInsertType": "merge",
+						"azureTableDefaultPartitionKeyValue": {
+							"value": "@pipeline().parameters.JOB_NAME",
+							"type": "Expression"
+						},
+						"writeBatchSize": 10000
+					},
+					"enableStaging": false,
+					"dataIntegrationUnits": 2,
+					"translator": {
+						"type": "TabularTranslator",
+						"mappings": [
+							{
+								"source": {
+									"name": "PartitionKey",
+									"type": "String"
+								},
+								"sink": {
+									"name": "PartitionKey",
+									"type": "String"
+								}
+							},
+							{
+								"source": {
+									"name": "RowKey",
+									"type": "String"
+								},
+								"sink": {
+									"name": "RowKey",
+									"type": "String"
+								}
+							},
+							{
+								"source": {
+									"name": "Timestamp",
+									"type": "DateTimeOffset"
+								},
+								"sink": {
+									"name": "Timestamp",
+									"type": "DateTimeOffset"
+								}
+							},
+							{
+								"source": {
+									"name": "RUN_ID",
+									"type": "String"
+								},
+								"sink": {
+									"name": "EXEC_ID",
+									"type": "String"
+								}
+							},
+							{
+								"source": {
+									"name": "RUN_MESSAGE",
+									"type": "String"
+								},
+								"sink": {
+									"name": "MESSAGE",
+									"type": "String"
+								}
+							},
+							{
+								"source": {
+									"name": "RUN_STATUS",
+									"type": "String"
+								},
+								"sink": {
+									"name": "STATUS",
+									"type": "String"
+								}
+							},
+							{
+								"source": {
+									"name": "CURR_MAX_DELTA_COL_VALUE",
+									"type": "String"
+								},
+								"sink": {
+									"name": "CURR_DELTA_VALUE",
+									"type": "String"
+								}
+							},
+							{
+								"source": {
+									"name": "SRC_DELTA_COL",
+									"type": "String"
+								},
+								"sink": {
+									"name": "DELTA_COL"
+								}
+							}
+						]
+					}
+				},
+				"inputs": [
+					{
+						"referenceName": "DS_ETL_LOAD_CONTROL",
+						"type": "DatasetReference",
+						"parameters": {
+							"AZ_STORAGE_TABLE": {
+								"value": "@variables('V_ELT_METADATA_TABLE')",
+								"type": "Expression"
+							}
+						}
+					}
+				],
+				"outputs": [
+					{
+						"referenceName": "DS_ETL_LOAD_CONTROL",
+						"type": "DatasetReference",
+						"parameters": {
+							"AZ_STORAGE_TABLE": {
+								"value": "@variables('V_ELT_LOAD_CONTROL_TABLE')",
+								"type": "Expression"
+							}
+						}
+					}
+				]
+			}
+		],
+		"parameters": {
+			"EXEC_RUN_ID": {
+				"type": "string",
+				"defaultValue": "61d8cf05-ad3c-49cf-8fd2-10918140d837"
+			},
+			"RUN_STATUS": {
+				"type": "string",
+				"defaultValue": "SUCCESS"
+			},
+			"RUN_MESSAGE": {
+				"type": "string",
+				"defaultValue": "DC.DC_E_NR_NRCELLDU_DAY"
+			},
+			"PREV_DELTA_VALUE": {
+				"type": "string",
+				"defaultValue": "DC.DC_E_NR_NRCELLDU_DAY"
+			},
+			"CURR_DELTA_VALUE": {
+				"type": "string",
+				"defaultValue": "DC.DC_E_NR_NRCELLDU_DAY"
+			},
+			"JOB_NAME": {
+				"type": "string",
+				"defaultValue": "DC.DC_E_NR_NRCELLDU_DAY"
+			}
+		},
+		"variables": {
+			"V_EXCEPTION_ARR": {
+				"type": "Array"
+			},
+			"V_ELT_METADATA_TABLE": {
+				"type": "String",
+				"defaultValue": "EltMetadataControl"
+			},
+			"V_METADATA_DEF_PARTITION_KEY": {
+				"type": "String",
+				"defaultValue": "DEFAULT"
+			},
+			"V_ELT_LOAD_CONTROL_TABLE": {
+				"type": "String",
+				"defaultValue": "EtlLoadControl"
+			}
+		},
+		"folder": {
+			"name": "Data Ingestion FrmWrk"
+		},
+		"annotations": [],
+		"lastPublishTime": "2022-03-09T16:27:59Z"
+	},
+	"type": "Microsoft.DataFactory/factories/pipelines"
+}

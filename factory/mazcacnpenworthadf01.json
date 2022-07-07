@@ -1,0 +1,17 @@
+{
+	"name": "mazcacnpenworthadf01",
+	"properties": {
+		"globalParameters": {
+			"cluster1_id": {
+				"type": "string",
+				"value": "1015-192218-e8mga1ru"
+			}
+		}
+	},
+	"location": "canadacentral",
+	"identity": {
+		"type": "SystemAssigned",
+		"principalId": "8caef6fd-427a-49df-a160-b5af7cd35b2f",
+		"tenantId": "0ab4cbbf-4bc7-4826-b52c-a14fed5286b9"
+	}
+}

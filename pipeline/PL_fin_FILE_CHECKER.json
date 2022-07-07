@@ -1,0 +1,170 @@
+{
+	"name": "PL_fin_FILE_CHECKER",
+	"properties": {
+		"description": "Pipeline to check if fin file exists or not .\nFor now only for FTP later include with switch for other src types too",
+		"activities": [
+			{
+				"name": "If fin file exists",
+				"description": "Check for fin file existence and this got to be done one and only if the file pattern ends with .fin !!!!!!",
+				"type": "IfCondition",
+				"dependsOn": [
+					{
+						"activity": "Check and Move Fin file",
+						"dependencyConditions": [
+							"Succeeded"
+						]
+					}
+				],
+				"userProperties": [],
+				"typeProperties": {
+					"expression": {
+						"value": "@not(and(endsWith(pipeline().parameters.SRC_TBL_FILE_NAME_PATTERN, '.fin') ,equals(activity('Check and Move Fin file').output.filesWritten, 0)))",
+						"type": "Expression"
+					},
+					"ifFalseActivities": [
+						{
+							"name": "set output_message for fin chk failure",
+							"description": "This is more like a err or info message to look upon",
+							"type": "SetVariable",
+							"dependsOn": [],
+							"userProperties": [],
+							"typeProperties": {
+								"variableName": "V_OUTPUT_MESSAGE",
+								"value": "i am expecting a fin file but :( !!"
+							}
+						},
+						{
+							"name": "ERR_FIN_FIN_NOT_FOUND",
+							"description": "Please check the fin file ",
+							"type": "AppendVariable",
+							"dependsOn": [
+								{
+									"activity": "set output_message for fin chk failure",
+									"dependencyConditions": [
+										"Succeeded"
+									]
+								}
+							],
+							"userProperties": [],
+							"typeProperties": {
+								"variableName": "V_ERR_MESSAGE",
+								"value": {
+									"value": "@int(variables('V_OUTPUT_MESSAGE'))",
+									"type": "Expression"
+								}
+							}
+						}
+					]
+				}
+			},
+			{
+				"name": "Check and Move Fin file",
+				"description": "This moves the fin file to archive directory and if not found it fails. \nIf the pattern does not endWith \".fin\" then we just silently come out !!",
+				"type": "Copy",
+				"dependsOn": [],
+				"policy": {
+					"timeout": "7.00:00:00",
+					"retry": 0,
+					"retryIntervalInSeconds": 30,
+					"secureOutput": false,
+					"secureInput": false
+				},
+				"userProperties": [],
+				"typeProperties": {
+					"source": {
+						"type": "BinarySource",
+						"storeSettings": {
+							"type": "FtpReadSettings",
+							"recursive": true,
+							"wildcardFolderPath": {
+								"value": "@pipeline().parameters.SRC_TBL_FILE_PATH",
+								"type": "Expression"
+							},
+							"wildcardFileName": {
+								"value": "@pipeline().parameters.SRC_TBL_FILE_NAME_PATTERN",
+								"type": "Expression"
+							},
+							"useBinaryTransfer": true,
+							"deleteFilesAfterCompletion": true
+						},
+						"formatSettings": {
+							"type": "BinaryReadSettings"
+						}
+					},
+					"sink": {
+						"type": "BinarySink",
+						"storeSettings": {
+							"type": "AzureBlobStorageWriteSettings"
+						}
+					},
+					"enableStaging": false
+				},
+				"inputs": [
+					{
+						"referenceName": "NTW_FTP_Datasets",
+						"type": "DatasetReference",
+						"parameters": {
+							"SRC_DATASET_PATH": "IN/"
+						}
+					}
+				],
+				"outputs": [
+					{
+						"referenceName": "BLOB_Binary_Datasets",
+						"type": "DatasetReference",
+						"parameters": {
+							"CONTAINER": {
+								"value": "@variables('V_NW_ARCHIVE_BLOB')",
+								"type": "Expression"
+							},
+							"FOLDER_FILE": {
+								"value": "@concat(pipeline().parameters.SRC_TYPE, '/', pipeline().parameters.DEST_TBL, '/', pipeline().parameters.ID)",
+								"type": "Expression"
+							}
+						}
+					}
+				]
+			}
+		],
+		"parameters": {
+			"SRC_TBL_FILE_PATH": {
+				"type": "string",
+				"defaultValue": "IN/ENIQ/eniq_dc_e_nr_nrcelldu_day"
+			},
+			"SRC_TBL_FILE_NAME_PATTERN": {
+				"type": "string",
+				"defaultValue": "eniq2*.fin2"
+			},
+			"SRC_TYPE": {
+				"type": "string",
+				"defaultValue": "NW_FTP"
+			},
+			"DEST_TBL": {
+				"type": "string",
+				"defaultValue": "FIN_FILES"
+			},
+			"ID": {
+				"type": "string",
+				"defaultValue": "utc_now"
+			}
+		},
+		"variables": {
+			"V_OUTPUT_MESSAGE": {
+				"type": "String"
+			},
+			"V_ERR_MESSAGE": {
+				"type": "Array"
+			},
+			"V_NW_ARCHIVE_BLOB": {
+				"type": "String",
+				"defaultValue": "rogers-eda-raw-prd-sensitive-storage/networth/nw-archive"
+			}
+		},
+		"folder": {
+			"name": "Data Ingestion FrmWrk"
+		},
+		"annotations": [],
+		"lastPublishTime": "2022-03-09T16:28:00Z"
+	},
+	"type": "Microsoft.DataFactory/factories/pipelines"
+}

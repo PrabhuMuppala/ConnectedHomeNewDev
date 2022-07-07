@@ -1,0 +1,48 @@
+{
+	"name": "RDS_STAGE_CSV_DataSets",
+	"properties": {
+		"description": "Datasets for representing text DSV files",
+		"linkedServiceName": {
+			"referenceName": "ls_az_stg_acc",
+			"type": "LinkedServiceReference"
+		},
+		"parameters": {
+			"RDS_STAGE_LOC": {
+				"type": "String",
+				"defaultValue": "@pipeline().parameters.RDS_STAGE_LOC"
+			},
+			"RDS_STAGE_FILE_FOLDER": {
+				"type": "String",
+				"defaultValue": "@pipeline().parameters.RDS_STAGE_FILE_FOLDER"
+			}
+		},
+		"folder": {
+			"name": "DataSets_4_DIF"
+		},
+		"annotations": [],
+		"type": "DelimitedText",
+		"typeProperties": {
+			"location": {
+				"type": "AzureBlobStorageLocation",
+				"fileName": {
+					"value": "@dataset().RDS_STAGE_FILE_FOLDER",
+					"type": "Expression"
+				},
+				"folderPath": {
+					"value": "@dataset().RDS_STAGE_FILE_FOLDER",
+					"type": "Expression"
+				},
+				"container": {
+					"value": "@dataset().RDS_STAGE_LOC",
+					"type": "Expression"
+				}
+			},
+			"columnDelimiter": "\t",
+			"escapeChar": "\\",
+			"firstRowAsHeader": true,
+			"quoteChar": "\""
+		},
+		"schema": []
+	},
+	"type": "Microsoft.DataFactory/factories/datasets"
+}

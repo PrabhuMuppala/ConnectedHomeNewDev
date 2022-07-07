@@ -1,0 +1,39 @@
+{
+	"name": "JSON_Datasets",
+	"properties": {
+		"linkedServiceName": {
+			"referenceName": "ls_4_gen2",
+			"type": "LinkedServiceReference"
+		},
+		"parameters": {
+			"CONTAINER": {
+				"type": "string",
+				"defaultValue": "@if(equals(pipeline().parameters.DEST_TYPE, 'ODS'), variables('V_ODS_LOC'), concat(variables('V_RDS_STAGE_LOC'), '/', pipeline().parameters.SRC_TYPE, '-STAGE'))"
+			},
+			"FOLDER_FILE": {
+				"type": "string",
+				"defaultValue": "@if(equals(pipeline().parameters.DEST_TYPE, 'ODS'), pipeline().parameters.ODS_LOC, pipeline().parameters.DEST_TBL)"
+			}
+		},
+		"folder": {
+			"name": "DataSets_4_DIF"
+		},
+		"annotations": [],
+		"type": "Json",
+		"typeProperties": {
+			"location": {
+				"type": "AzureBlobFSLocation",
+				"folderPath": {
+					"value": "@dataset().FOLDER_FILE",
+					"type": "Expression"
+				},
+				"fileSystem": {
+					"value": "@dataset().CONTAINER",
+					"type": "Expression"
+				}
+			}
+		},
+		"schema": {}
+	},
+	"type": "Microsoft.DataFactory/factories/datasets"
+}

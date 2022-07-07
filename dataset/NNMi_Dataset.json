@@ -1,0 +1,25 @@
+{
+	"name": "NNMi_Dataset",
+	"properties": {
+		"linkedServiceName": {
+			"referenceName": "ls_ftp_ntw_server_new",
+			"type": "LinkedServiceReference"
+		},
+		"folder": {
+			"name": "DataSets_4_DIF"
+		},
+		"annotations": [],
+		"type": "Binary",
+		"typeProperties": {
+			"location": {
+				"type": "FtpServerLocation",
+				"folderPath": "IN/NNMI"
+			},
+			"compression": {
+				"type": "gzip",
+				"level": "Fastest"
+			}
+		}
+	},
+	"type": "Microsoft.DataFactory/factories/datasets"
+}

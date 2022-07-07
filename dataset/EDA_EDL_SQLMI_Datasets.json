@@ -1,0 +1,173 @@
+{
+	"name": "EDA_EDL_SQLMI_Datasets",
+	"properties": {
+		"linkedServiceName": {
+			"referenceName": "ls_sqlmi_eda_edl_ctl_fw_db",
+			"type": "LinkedServiceReference"
+		},
+		"folder": {
+			"name": "DataSets_4_DIF"
+		},
+		"annotations": [],
+		"type": "AzureSqlMITable",
+		"schema": [
+			{
+				"name": "JOB_NAME",
+				"type": "nvarchar"
+			},
+			{
+				"name": "CSV_HEADER_FLG",
+				"type": "nvarchar"
+			},
+			{
+				"name": "CURR_MAX_DELTA_COL_VALUE",
+				"type": "nvarchar"
+			},
+			{
+				"name": "CURR_MAX_DELTA_COL_VALUE_FORMAT",
+				"type": "nvarchar"
+			},
+			{
+				"name": "DBFS_COALESCE",
+				"type": "nvarchar"
+			},
+			{
+				"name": "DBFS_FILE_FORMAT",
+				"type": "nvarchar"
+			},
+			{
+				"name": "DBFS_PARTITION_BY",
+				"type": "nvarchar"
+			},
+			{
+				"name": "DBFS_SAVE_MODE",
+				"type": "nvarchar"
+			},
+			{
+				"name": "DEST_TBL",
+				"type": "nvarchar"
+			},
+			{
+				"name": "DEST_TYPE",
+				"type": "nvarchar"
+			},
+			{
+				"name": "FAIL_ON_NO_DATA",
+				"type": "nvarchar"
+			},
+			{
+				"name": "HDFS_PARTITION_COL_FORMAT",
+				"type": "nvarchar"
+			},
+			{
+				"name": "INFO_APP_OWNER",
+				"type": "nvarchar"
+			},
+			{
+				"name": "INFO_BIZ_UNIT",
+				"type": "nvarchar"
+			},
+			{
+				"name": "INFO_COST_CENTER",
+				"type": "nvarchar"
+			},
+			{
+				"name": "INFO_DATASET_DETAILS",
+				"type": "nvarchar"
+			},
+			{
+				"name": "IS_ACTIVE",
+				"type": "nvarchar"
+			},
+			{
+				"name": "IS_AZ_AUDIT_COLS_2_ADD",
+				"type": "nvarchar"
+			},
+			{
+				"name": "LOAD_TYPE",
+				"type": "nvarchar"
+			},
+			{
+				"name": "MAPPING",
+				"type": "nvarchar"
+			},
+			{
+				"name": "ODS_LOC",
+				"type": "nvarchar"
+			},
+			{
+				"name": "PARTITION_THRESHOLD",
+				"type": "nvarchar"
+			},
+			{
+				"name": "PARTITION_THRESHOLD_TYPE",
+				"type": "nvarchar"
+			},
+			{
+				"name": "PURGE_FREQ_DAYS",
+				"type": "nvarchar"
+			},
+			{
+				"name": "QRY",
+				"type": "nvarchar"
+			},
+			{
+				"name": "RDS_STAGE_FILE_FOLDER",
+				"type": "nvarchar"
+			},
+			{
+				"name": "RDS_STAGE_FILE_FORMAT",
+				"type": "nvarchar"
+			},
+			{
+				"name": "RDS_STAGE_LOC",
+				"type": "nvarchar"
+			},
+			{
+				"name": "SRC_CSV_HEADER_FLG",
+				"type": "nvarchar"
+			},
+			{
+				"name": "SRC_CUSTOM_WHERE_CLAUSE",
+				"type": "nvarchar"
+			},
+			{
+				"name": "SRC_DELTA_COL",
+				"type": "nvarchar"
+			},
+			{
+				"name": "SRC_TBL_FILE_NAME_PATTERN",
+				"type": "nvarchar"
+			},
+			{
+				"name": "SRC_TBL_FILE_PATH",
+				"type": "nvarchar"
+			},
+			{
+				"name": "SRC_TBL_FILE_PATTERN",
+				"type": "nvarchar"
+			},
+			{
+				"name": "SRC_TBL_PK_CSV",
+				"type": "nvarchar"
+			},
+			{
+				"name": "SRC_TYPE",
+				"type": "nvarchar"
+			},
+			{
+				"name": "WINDOW_END_TIME_UTC",
+				"type": "nvarchar"
+			},
+			{
+				"name": "WINDOW_START_TIME_UTC",
+				"type": "nvarchar"
+			}
+		],
+		"typeProperties": {
+			"schema": "dbo",
+			"table": "elt_metadata_control"
+		}
+	},
+	"type": "Microsoft.DataFactory/factories/datasets"
+}

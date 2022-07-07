@@ -1,0 +1,921 @@
+{
+	"name": "PL_HDFS_RETRIEVAL",
+	"properties": {
+		"activities": [
+			{
+				"name": "Until END_PARTITION",
+				"type": "Until",
+				"dependsOn": [
+					{
+						"activity": "Switch set V_END_PARTITION",
+						"dependencyConditions": [
+							"Succeeded"
+						]
+					}
+				],
+				"userProperties": [],
+				"typeProperties": {
+					"expression": {
+						"value": "@equals(variables('V_STOP_LOOP'),'true')",
+						"type": "Expression"
+					},
+					"activities": [
+						{
+							"name": "If V_START_PART is less than V_END_PART",
+							"type": "IfCondition",
+							"dependsOn": [],
+							"userProperties": [],
+							"typeProperties": {
+								"expression": {
+									"value": "@lessOrEquals(variables('V_START_PARTITION'), variables('V_END_PARTITION'))",
+									"type": "Expression"
+								},
+								"ifFalseActivities": [
+									{
+										"name": "Set V_LOOP_REPEAT_True",
+										"type": "SetVariable",
+										"dependsOn": [],
+										"userProperties": [],
+										"typeProperties": {
+											"variableName": "V_STOP_LOOP",
+											"value": {
+												"value": "true",
+												"type": "Expression"
+											}
+										}
+									}
+								],
+								"ifTrueActivities": [
+									{
+										"name": "HDFS_PULL_FRM_PRIMARY_WEBHDFS_PARTITION_FORMAT",
+										"type": "Copy",
+										"dependsOn": [],
+										"policy": {
+											"timeout": "7.00:00:00",
+											"retry": 0,
+											"retryIntervalInSeconds": 30,
+											"secureOutput": false,
+											"secureInput": false
+										},
+										"userProperties": [],
+										"typeProperties": {
+											"source": {
+												"type": "BinarySource",
+												"storeSettings": {
+													"type": "HdfsReadSettings",
+													"deleteFilesAfterCompletion": false,
+													"recursive": true,
+													"modifiedDatetimeStart": {
+														"value": "@pipeline().parameters.WINDOW_START_TIME_UTC",
+														"type": "Expression"
+													},
+													"modifiedDatetimeEnd": {
+														"value": "@pipeline().parameters.WINDOW_END_TIME_UTC",
+														"type": "Expression"
+													},
+													"wildcardFolderPath": {
+														"value": "@replace(concat(pipeline().parameters.SRC_TBL_FILE_PATH,'/',pipeline().parameters.SRC_DELTA_COL,'=',variables('V_START_PARTITION')) ,'\\','')",
+														"type": "Expression"
+													}
+												},
+												"formatSettings": {
+													"type": "BinaryReadSettings"
+												}
+											},
+											"sink": {
+												"type": "BinarySink",
+												"storeSettings": {
+													"type": "AzureBlobStorageWriteSettings",
+													"copyBehavior": "PreserveHierarchy"
+												}
+											},
+											"enableStaging": false
+										},
+										"inputs": [
+											{
+												"referenceName": "HDFS_Datasets",
+												"type": "DatasetReference"
+											}
+										],
+										"outputs": [
+											{
+												"referenceName": "ds_blob_sink_4_hdfs",
+												"type": "DatasetReference",
+												"parameters": {
+													"RDS_STAGE_LOC": {
+														"value": "@if(equals(pipeline().parameters.DEST_TYPE, 'ODS'), variables('V_ODS_LOC'), concat(variables('V_RDS_STAGE_LOC'), '/', pipeline().parameters.SRC_TYPE, '-STAGE'))",
+														"type": "Expression"
+													},
+													"RDS_STAGE_FOLDER": {
+														"value": "@if(equals(pipeline().parameters.DEST_TYPE, 'ODS'), concat(pipeline().parameters.ODS_LOC,'/',pipeline().parameters.SRC_DELTA_COL,'=',variables('V_START_PARTITION')), concat(pipeline().parameters.DEST_TBL,'/',pipeline().parameters.SRC_DELTA_COL,'=',variables('V_START_PARTITION')))",
+														"type": "Expression"
+													}
+												}
+											}
+										]
+									},
+									{
+										"name": "Set V_STOP_LOOP_On_Fail",
+										"type": "SetVariable",
+										"dependsOn": [
+											{
+												"activity": "HDFS_PULL_FRM_PRIMARY_WEBHDFS_PARTITION_FORMAT",
+												"dependencyConditions": [
+													"Failed"
+												]
+											}
+										],
+										"userProperties": [],
+										"typeProperties": {
+											"variableName": "V_STOP_LOOP",
+											"value": {
+												"value": "true",
+												"type": "Expression"
+											}
+										}
+									},
+									{
+										"name": "Set V_STOP_LOOP_On_Success_FRM_SECONDARY",
+										"type": "SetVariable",
+										"dependsOn": [
+											{
+												"activity": "Set V_SRC_COUNT_DERIVED_FRM_SECONDARY",
+												"dependencyConditions": [
+													"Succeeded"
+												]
+											}
+										],
+										"userProperties": [],
+										"typeProperties": {
+											"variableName": "V_STOP_LOOP",
+											"value": {
+												"value": "false",
+												"type": "Expression"
+											}
+										}
+									},
+									{
+										"name": "Increment V_TEMP_SRC_COUNT_DERIVED",
+										"description": "For HDFS, its not the row count but just the size of data written !!",
+										"type": "SetVariable",
+										"dependsOn": [
+											{
+												"activity": "HDFS_PULL_FRM_PRIMARY_WEBHDFS_PARTITION_FORMAT",
+												"dependencyConditions": [
+													"Succeeded"
+												]
+											}
+										],
+										"userProperties": [],
+										"typeProperties": {
+											"variableName": "V_TEMP_SRC_COUNT_DERIVED",
+											"value": {
+												"value": "@{add(activity('HDFS_PULL_FRM_PRIMARY_WEBHDFS_PARTITION_FORMAT').output.dataWritten,int(variables('V_SRC_COUNT_DERIVED')))}",
+												"type": "Expression"
+											}
+										}
+									},
+									{
+										"name": "Set V_SRC_COUNT_DERIVED_FRM_SECONDARY",
+										"description": "For HDFS, its not the row count but just the size of data written !!",
+										"type": "SetVariable",
+										"dependsOn": [
+											{
+												"activity": "Increment V_TEMP_SRC_COUNT_DERIVED_FRM_SECONDARY",
+												"dependencyConditions": [
+													"Succeeded"
+												]
+											}
+										],
+										"userProperties": [],
+										"typeProperties": {
+											"variableName": "V_SRC_COUNT_DERIVED",
+											"value": {
+												"value": "@variables('V_TEMP_SRC_COUNT_DERIVED')",
+												"type": "Expression"
+											}
+										}
+									},
+									{
+										"name": "Switch set NEXT V_START_PARTITION",
+										"type": "Switch",
+										"dependsOn": [
+											{
+												"activity": "Set V_STOP_LOOP_On_Success_copy1",
+												"dependencyConditions": [
+													"Succeeded"
+												]
+											}
+										],
+										"userProperties": [],
+										"typeProperties": {
+											"on": {
+												"value": "@variables('V_PARTITION_THRESHOLD_ARR')[2]",
+												"type": "Expression"
+											},
+											"cases": [
+												{
+													"value": "DAY",
+													"activities": [
+														{
+															"name": "Increment V_TEMP_START_PARTITION DAY",
+															"type": "SetVariable",
+															"dependsOn": [],
+															"userProperties": [],
+															"typeProperties": {
+																"variableName": "V_TEMP_START_PARTITION",
+																"value": {
+																	"value": "@adddays(variables('V_START_PARTITION'), 1, pipeline().parameters.HDFS_PARTITION_COL_FORMAT)",
+																	"type": "Expression"
+																}
+															}
+														},
+														{
+															"name": "Set NEXT V_START_PARTITION DAY",
+															"type": "SetVariable",
+															"dependsOn": [
+																{
+																	"activity": "Increment V_TEMP_START_PARTITION DAY",
+																	"dependencyConditions": [
+																		"Succeeded"
+																	]
+																}
+															],
+															"userProperties": [],
+															"typeProperties": {
+																"variableName": "V_START_PARTITION",
+																"value": {
+																	"value": "@variables('V_TEMP_START_PARTITION')",
+																	"type": "Expression"
+																}
+															}
+														}
+													]
+												},
+												{
+													"value": "MINS",
+													"activities": [
+														{
+															"name": "Increment NEXT V_TEMP_START_PARTITION MINS",
+															"type": "SetVariable",
+															"dependsOn": [],
+															"userProperties": [],
+															"typeProperties": {
+																"variableName": "V_TEMP_START_PARTITION",
+																"value": {
+																	"value": "@replace(addMinutes(replace(variables('V_START_PARTITION'),'%3A',':'),int(variables('V_PARTITION_THRESHOLD_ARR')[1]), pipeline().parameters.HDFS_PARTITION_COL_FORMAT),':','%3A')",
+																	"type": "Expression"
+																}
+															}
+														},
+														{
+															"name": "Set NEXT V_START_PARTITION MINS",
+															"type": "SetVariable",
+															"dependsOn": [
+																{
+																	"activity": "Increment NEXT V_TEMP_START_PARTITION MINS",
+																	"dependencyConditions": [
+																		"Succeeded"
+																	]
+																}
+															],
+															"userProperties": [],
+															"typeProperties": {
+																"variableName": "V_START_PARTITION",
+																"value": {
+																	"value": "@variables('V_TEMP_START_PARTITION')",
+																	"type": "Expression"
+																}
+															}
+														}
+													]
+												}
+											]
+										}
+									},
+									{
+										"name": "HDFS_PULL_FRM_SECONDARY_WEBHDFS_PARTITION_FORMAT",
+										"description": "Pull the files from HDFS cluster using timebased water marking !!",
+										"type": "Copy",
+										"dependsOn": [
+											{
+												"activity": "Set V_STOP_LOOP_On_Fail",
+												"dependencyConditions": [
+													"Succeeded"
+												]
+											}
+										],
+										"policy": {
+											"timeout": "7.00:00:00",
+											"retry": 0,
+											"retryIntervalInSeconds": 30,
+											"secureOutput": false,
+											"secureInput": false
+										},
+										"userProperties": [],
+										"typeProperties": {
+											"source": {
+												"type": "BinarySource",
+												"storeSettings": {
+													"type": "HdfsReadSettings",
+													"deleteFilesAfterCompletion": false,
+													"recursive": true,
+													"modifiedDatetimeStart": {
+														"value": "@{pipeline().parameters.WINDOW_START_TIME_UTC}",
+														"type": "Expression"
+													},
+													"modifiedDatetimeEnd": {
+														"value": "@{pipeline().parameters.WINDOW_END_TIME_UTC}",
+														"type": "Expression"
+													},
+													"wildcardFolderPath": {
+														"value": "@replace(concat(pipeline().parameters.SRC_TBL_FILE_PATH,'/',pipeline().parameters.SRC_DELTA_COL,'=',variables('V_START_PARTITION')) ,'\\','')",
+														"type": "Expression"
+													}
+												},
+												"formatSettings": {
+													"type": "BinaryReadSettings"
+												}
+											},
+											"sink": {
+												"type": "BinarySink",
+												"storeSettings": {
+													"type": "AzureBlobStorageWriteSettings"
+												}
+											},
+											"enableStaging": false,
+											"validateDataConsistency": false
+										},
+										"inputs": [
+											{
+												"referenceName": "HDFS_Secondary_Datasets",
+												"type": "DatasetReference"
+											}
+										],
+										"outputs": [
+											{
+												"referenceName": "ds_blob_sink_4_hdfs",
+												"type": "DatasetReference",
+												"parameters": {
+													"RDS_STAGE_LOC": {
+														"value": "@if(equals(pipeline().parameters.DEST_TYPE, 'ODS'), variables('V_ODS_LOC'), concat(variables('V_RDS_STAGE_LOC'), '/', pipeline().parameters.SRC_TYPE, '-STAGE'))",
+														"type": "Expression"
+													},
+													"RDS_STAGE_FOLDER": {
+														"value": "@if(equals(pipeline().parameters.DEST_TYPE, 'ODS'), concat(pipeline().parameters.ODS_LOC,'/',pipeline().parameters.SRC_DELTA_COL,'=',variables('V_START_PARTITION')), concat(pipeline().parameters.DEST_TBL,'/',pipeline().parameters.SRC_DELTA_COL,'=',variables('V_START_PARTITION')))",
+														"type": "Expression"
+													}
+												}
+											}
+										]
+									},
+									{
+										"name": "ARCHIVE HDFS FILES",
+										"description": "as its mv ie copy and delete from FTP to RDS. if 5 files and 4 copied 1 failed at src you would have only 1 file left. To Rerun Support need to copy from archive for the latest run",
+										"type": "ExecutePipeline",
+										"dependsOn": [
+											{
+												"activity": "Switch set NEXT V_START_PARTITION",
+												"dependencyConditions": [
+													"Succeeded"
+												]
+											}
+										],
+										"userProperties": [],
+										"typeProperties": {
+											"pipeline": {
+												"referenceName": "PL_ARCHIVER",
+												"type": "PipelineReference"
+											},
+											"waitOnCompletion": true,
+											"parameters": {
+												"RDS_STAGE_LOC": {
+													"value": "@concat(variables('V_RDS_STAGE_LOC'), '/', pipeline().parameters.SRC_TYPE, '-STAGE')",
+													"type": "Expression"
+												},
+												"DEST_TBL": {
+													"value": "@pipeline().parameters.DEST_TBL",
+													"type": "Expression"
+												},
+												"SRC_TYPE": {
+													"value": "@pipeline().parameters.SRC_TYPE",
+													"type": "Expression"
+												}
+											}
+										}
+									},
+									{
+										"name": "Increment V_TEMP_SRC_COUNT_DERIVED_FRM_SECONDARY",
+										"description": "For HDFS, its not the row count but just the size of data written !!",
+										"type": "SetVariable",
+										"dependsOn": [
+											{
+												"activity": "HDFS_PULL_FRM_SECONDARY_WEBHDFS_PARTITION_FORMAT",
+												"dependencyConditions": [
+													"Succeeded"
+												]
+											}
+										],
+										"userProperties": [],
+										"typeProperties": {
+											"variableName": "V_TEMP_SRC_COUNT_DERIVED",
+											"value": {
+												"value": "@{add(activity('HDFS_PULL_FRM_SECONDARY_WEBHDFS_PARTITION_FORMAT').output.dataWritten,int(variables('V_SRC_COUNT_DERIVED')))}",
+												"type": "Expression"
+											}
+										}
+									},
+									{
+										"name": "Set V_STOP_LOOP_On_Fail_FRM_SECONDARY",
+										"type": "SetVariable",
+										"dependsOn": [
+											{
+												"activity": "HDFS_PULL_FRM_SECONDARY_WEBHDFS_PARTITION_FORMAT",
+												"dependencyConditions": [
+													"Failed"
+												]
+											}
+										],
+										"userProperties": [],
+										"typeProperties": {
+											"variableName": "V_STOP_LOOP",
+											"value": {
+												"value": "true",
+												"type": "Expression"
+											}
+										}
+									},
+									{
+										"name": "Set V_SRC_COUNT_DERIVED_copy1",
+										"description": "For HDFS, its not the row count but just the size of data written !!",
+										"type": "SetVariable",
+										"dependsOn": [
+											{
+												"activity": "Increment V_TEMP_SRC_COUNT_DERIVED",
+												"dependencyConditions": [
+													"Succeeded"
+												]
+											}
+										],
+										"userProperties": [],
+										"typeProperties": {
+											"variableName": "V_SRC_COUNT_DERIVED",
+											"value": {
+												"value": "@variables('V_TEMP_SRC_COUNT_DERIVED')",
+												"type": "Expression"
+											}
+										}
+									},
+									{
+										"name": "Set V_STOP_LOOP_On_Success_copy1",
+										"type": "SetVariable",
+										"dependsOn": [
+											{
+												"activity": "Set V_SRC_COUNT_DERIVED_copy1",
+												"dependencyConditions": [
+													"Succeeded"
+												]
+											}
+										],
+										"userProperties": [],
+										"typeProperties": {
+											"variableName": "V_STOP_LOOP",
+											"value": {
+												"value": "false",
+												"type": "Expression"
+											}
+										}
+									},
+									{
+										"name": "Switch set NEXT V_START_PARTITION_FRM_SECONDARY",
+										"type": "Switch",
+										"dependsOn": [
+											{
+												"activity": "Set V_STOP_LOOP_On_Success_FRM_SECONDARY",
+												"dependencyConditions": [
+													"Succeeded"
+												]
+											}
+										],
+										"userProperties": [],
+										"typeProperties": {
+											"on": {
+												"value": "@variables('V_PARTITION_THRESHOLD_ARR')[2]",
+												"type": "Expression"
+											},
+											"cases": [
+												{
+													"value": "DAY",
+													"activities": [
+														{
+															"name": "Increment V_TEMP_START_PARTITION DAY_copy1",
+															"type": "SetVariable",
+															"dependsOn": [],
+															"userProperties": [],
+															"typeProperties": {
+																"variableName": "V_TEMP_START_PARTITION",
+																"value": {
+																	"value": "@adddays(variables('V_START_PARTITION'), 1, pipeline().parameters.HDFS_PARTITION_COL_FORMAT)",
+																	"type": "Expression"
+																}
+															}
+														},
+														{
+															"name": "Set NEXT V_START_PARTITION DAY_copy1",
+															"type": "SetVariable",
+															"dependsOn": [
+																{
+																	"activity": "Increment V_TEMP_START_PARTITION DAY_copy1",
+																	"dependencyConditions": [
+																		"Succeeded"
+																	]
+																}
+															],
+															"userProperties": [],
+															"typeProperties": {
+																"variableName": "V_START_PARTITION",
+																"value": {
+																	"value": "@variables('V_TEMP_START_PARTITION')",
+																	"type": "Expression"
+																}
+															}
+														}
+													]
+												},
+												{
+													"value": "MINS",
+													"activities": [
+														{
+															"name": "Increment NEXT V_TEMP_START_PARTITION MINS_copy1",
+															"type": "SetVariable",
+															"dependsOn": [],
+															"userProperties": [],
+															"typeProperties": {
+																"variableName": "V_TEMP_START_PARTITION",
+																"value": {
+																	"value": "@replace(addMinutes(replace(variables('V_START_PARTITION'),'%3A',':'),int(variables('V_PARTITION_THRESHOLD_ARR')[1]), pipeline().parameters.HDFS_PARTITION_COL_FORMAT),':','%3A')",
+																	"type": "Expression"
+																}
+															}
+														},
+														{
+															"name": "Set NEXT V_START_PARTITION MINS_copy1",
+															"type": "SetVariable",
+															"dependsOn": [
+																{
+																	"activity": "Increment NEXT V_TEMP_START_PARTITION MINS_copy1",
+																	"dependencyConditions": [
+																		"Succeeded"
+																	]
+																}
+															],
+															"userProperties": [],
+															"typeProperties": {
+																"variableName": "V_START_PARTITION",
+																"value": {
+																	"value": "@variables('V_TEMP_START_PARTITION')",
+																	"type": "Expression"
+																}
+															}
+														}
+													]
+												}
+											]
+										}
+									},
+									{
+										"name": "ARCHIVE HDFS FILES_FRM_SECONDARY",
+										"description": "as its mv ie copy and delete from FTP to RDS. if 5 files and 4 copied 1 failed at src you would have only 1 file left. To Rerun Support need to copy from archive for the latest run",
+										"type": "ExecutePipeline",
+										"dependsOn": [
+											{
+												"activity": "Switch set NEXT V_START_PARTITION_FRM_SECONDARY",
+												"dependencyConditions": [
+													"Succeeded"
+												]
+											}
+										],
+										"userProperties": [],
+										"typeProperties": {
+											"pipeline": {
+												"referenceName": "PL_ARCHIVER",
+												"type": "PipelineReference"
+											},
+											"waitOnCompletion": true,
+											"parameters": {
+												"RDS_STAGE_LOC": {
+													"value": "@concat(variables('V_RDS_STAGE_LOC'), '/', pipeline().parameters.SRC_TYPE, '-STAGE')",
+													"type": "Expression"
+												},
+												"DEST_TBL": {
+													"value": "@pipeline().parameters.DEST_TBL",
+													"type": "Expression"
+												},
+												"SRC_TYPE": {
+													"value": "@pipeline().parameters.SRC_TYPE",
+													"type": "Expression"
+												}
+											}
+										}
+									}
+								]
+							}
+						},
+						{
+							"name": "Set V_STOP_LOOP_On_Fail_From_HA_copy1",
+							"type": "SetVariable",
+							"dependsOn": [
+								{
+									"activity": "If V_START_PART is less than V_END_PART",
+									"dependencyConditions": [
+										"Failed"
+									]
+								}
+							],
+							"userProperties": [],
+							"typeProperties": {
+								"variableName": "V_STOP_LOOP",
+								"value": {
+									"value": "true",
+									"type": "Expression"
+								}
+							}
+						}
+					],
+					"timeout": "7.00:00:00"
+				}
+			},
+			{
+				"name": "Execute PL_SRC_COUNT_ZERO_CHECK",
+				"type": "ExecutePipeline",
+				"dependsOn": [
+					{
+						"activity": "Until END_PARTITION",
+						"dependencyConditions": [
+							"Succeeded"
+						]
+					}
+				],
+				"userProperties": [],
+				"typeProperties": {
+					"pipeline": {
+						"referenceName": "PL_SRC_COUNT_ZERO_CHECK",
+						"type": "PipelineReference"
+					},
+					"waitOnCompletion": true,
+					"parameters": {
+						"SRC_COUNT_DERIVED": {
+							"value": "@variables('V_SRC_COUNT_DERIVED')",
+							"type": "Expression"
+						}
+					}
+				}
+			},
+			{
+				"name": "Set V_PARTITION_THRESHOLD_ARR",
+				"type": "SetVariable",
+				"dependsOn": [],
+				"userProperties": [],
+				"typeProperties": {
+					"variableName": "V_PARTITION_THRESHOLD_ARR",
+					"value": {
+						"value": "@split(pipeline().parameters.PARTITION_THRESHOLD,'###')",
+						"type": "Expression"
+					}
+				}
+			},
+			{
+				"name": "Switch set V_START_PARTITION",
+				"type": "Switch",
+				"dependsOn": [
+					{
+						"activity": "If V_PARTITION_THRESHOLD_ARR length is 3",
+						"dependencyConditions": [
+							"Succeeded"
+						]
+					}
+				],
+				"userProperties": [],
+				"typeProperties": {
+					"on": {
+						"value": "@variables('V_PARTITION_THRESHOLD_ARR')[2]",
+						"type": "Expression"
+					},
+					"cases": [
+						{
+							"value": "DAY",
+							"activities": [
+								{
+									"name": "Set V_START_PARTITION DAY",
+									"type": "SetVariable",
+									"dependsOn": [],
+									"userProperties": [],
+									"typeProperties": {
+										"variableName": "V_START_PARTITION",
+										"value": {
+											"value": "@convertTimeZone(adddays(utcnow(),int(concat('-',variables('V_PARTITION_THRESHOLD_ARR')[0]))), 'UTC', 'Eastern Standard Time',pipeline().parameters.HDFS_PARTITION_COL_FORMAT)",
+											"type": "Expression"
+										}
+									}
+								}
+							]
+						},
+						{
+							"value": "MINS",
+							"activities": [
+								{
+									"name": "Set V_START_PARTITION MINS",
+									"type": "SetVariable",
+									"dependsOn": [],
+									"userProperties": [],
+									"typeProperties": {
+										"variableName": "V_START_PARTITION",
+										"value": {
+											"value": "@replace(concat(addDays(convertTimeZone(utcnow(),'UTC','Eastern Standard Time'),sub(int(concat('-',variables('V_PARTITION_THRESHOLD_ARR')[0])),1), 'yyyy-MM-dd'),' 00:00:00'),':','%3A')",
+											"type": "Expression"
+										}
+									}
+								}
+							]
+						}
+					]
+				}
+			},
+			{
+				"name": "If V_PARTITION_THRESHOLD_ARR length is 3",
+				"type": "IfCondition",
+				"dependsOn": [
+					{
+						"activity": "Set V_PARTITION_THRESHOLD_ARR",
+						"dependencyConditions": [
+							"Succeeded"
+						]
+					}
+				],
+				"userProperties": [],
+				"typeProperties": {
+					"expression": {
+						"value": "@equals(length(variables('V_PARTITION_THRESHOLD_ARR')),3)",
+						"type": "Expression"
+					}
+				}
+			},
+			{
+				"name": "Switch set V_END_PARTITION",
+				"type": "Switch",
+				"dependsOn": [
+					{
+						"activity": "Switch set V_START_PARTITION",
+						"dependencyConditions": [
+							"Succeeded"
+						]
+					}
+				],
+				"userProperties": [],
+				"typeProperties": {
+					"on": {
+						"value": "@variables('V_PARTITION_THRESHOLD_ARR')[2]",
+						"type": "Expression"
+					},
+					"cases": [
+						{
+							"value": "DAY",
+							"activities": [
+								{
+									"name": "Set V_END_PARTITION",
+									"type": "SetVariable",
+									"dependsOn": [],
+									"userProperties": [],
+									"typeProperties": {
+										"variableName": "V_END_PARTITION",
+										"value": {
+											"value": "@convertTimeZone(adddays(utcnow(),-1), 'UTC', 'Eastern Standard Time', pipeline().parameters.HDFS_PARTITION_COL_FORMAT)",
+											"type": "Expression"
+										}
+									}
+								}
+							]
+						},
+						{
+							"value": "MINS",
+							"activities": [
+								{
+									"name": "Set V_END_PARTITION MINS",
+									"type": "SetVariable",
+									"dependsOn": [],
+									"userProperties": [],
+									"typeProperties": {
+										"variableName": "V_END_PARTITION",
+										"value": {
+											"value": "@replace(addMinutes(convertTimeZone(utcnow(), 'UTC', 'Eastern Standard Time', 'yyyy-MM-dd'),int(concat('-',variables('V_PARTITION_THRESHOLD_ARR')[1])),pipeline().parameters.HDFS_PARTITION_COL_FORMAT),':','%3A')",
+											"type": "Expression"
+										}
+									}
+								}
+							]
+						}
+					]
+				}
+			}
+		],
+		"parameters": {
+			"DELTA_CURR_MAX_VALUE": {
+				"type": "string",
+				"defaultValue": "NULL"
+			},
+			"SRC_TBL_FILE_PATH": {
+				"type": "string",
+				"defaultValue": "NULL"
+			},
+			"HDFS_PARTITION_COL_FORMAT": {
+				"type": "string",
+				"defaultValue": "NULL"
+			},
+			"PARTITION_THRESHOLD": {
+				"type": "string",
+				"defaultValue": "NULL"
+			},
+			"PARTITION_THRESHOLD_TYPE": {
+				"type": "string",
+				"defaultValue": "NULL"
+			},
+			"ODS_LOC": {
+				"type": "string",
+				"defaultValue": "NULL"
+			},
+			"WINDOW_START_TIME_UTC": {
+				"type": "string",
+				"defaultValue": "NULL"
+			},
+			"WINDOW_END_TIME_UTC": {
+				"type": "string",
+				"defaultValue": "NULL"
+			},
+			"DEST_TYPE": {
+				"type": "string",
+				"defaultValue": "NULL"
+			},
+			"DEST_TBL": {
+				"type": "string",
+				"defaultValue": "NULL"
+			},
+			"SRC_TYPE": {
+				"type": "string",
+				"defaultValue": "NULL"
+			},
+			"SRC_DELTA_COL": {
+				"type": "string",
+				"defaultValue": "NULL"
+			}
+		},
+		"variables": {
+			"V_START_PARTITION": {
+				"type": "String",
+				"defaultValue": "NULL"
+			},
+			"V_TEMP_START_PARTITION": {
+				"type": "String",
+				"defaultValue": "NULL"
+			},
+			"V_END_PARTITION": {
+				"type": "String",
+				"defaultValue": "NULL"
+			},
+			"V_STOP_LOOP": {
+				"type": "String",
+				"defaultValue": "false"
+			},
+			"V_IS_ERR_TO_RAISE": {
+				"type": "String"
+			},
+			"V_RDS_STAGE_LOC": {
+				"type": "String",
+				"defaultValue": "rogers-eda-raw-prd-sensitive-storage/networth/nw-rds-stage"
+			},
+			"V_SRC_COUNT_DERIVED": {
+				"type": "String",
+				"defaultValue": "0"
+			},
+			"V_ODS_LOC": {
+				"type": "String",
+				"defaultValue": "rogers-eda-raw-prd-sensitive-storage/networth/nw-ods"
+			},
+			"V_TEMP_SRC_COUNT_DERIVED": {
+				"type": "String",
+				"defaultValue": "0"
+			},
+			"V_PARTITION_THRESHOLD_ARR": {
+				"type": "Array",
+				"defaultValue": [
+					"NULL"
+				]
+			}
+		},
+		"folder": {
+			"name": "Data Ingestion FrmWrk"
+		},
+		"annotations": [],
+		"lastPublishTime": "2022-03-09T16:28:01Z"
+	},
+	"type": "Microsoft.DataFactory/factories/pipelines"
+}

@@ -1,0 +1,32 @@
+{
+	"name": "Networth_DataBricks",
+	"type": "Microsoft.DataFactory/factories/linkedservices",
+	"properties": {
+		"annotations": [],
+		"type": "AzureDatabricks",
+		"typeProperties": {
+			"domain": "https://adb-1348407712854365.5.azuredatabricks.net",
+			"accessToken": {
+				"type": "AzureKeyVaultSecret",
+				"store": {
+					"referenceName": "AzureKeyVault1",
+					"type": "LinkedServiceReference"
+				},
+				"secretName": "secret-networth-dbricks-token",
+				"secretVersion": ""
+			},
+			"newClusterNodeType": "Standard_DS3_v2",
+			"newClusterNumOfWorker": "2",
+			"newClusterSparkConf": {
+				"spark.hadoop.mapreduce.fileoutputcommitter.cleanup.skipped": "false",
+				"spark.yarn.preserve.staging.files": "false"
+			},
+			"newClusterVersion": "7.3.x-scala2.12",
+			"newClusterInitScripts": []
+		},
+		"connectVia": {
+			"referenceName": "networthir",
+			"type": "IntegrationRuntimeReference"
+		}
+	}
+}

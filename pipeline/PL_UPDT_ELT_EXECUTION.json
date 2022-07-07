@@ -1,0 +1,302 @@
+{
+	"name": "PL_UPDT_ELT_EXECUTION",
+	"properties": {
+		"activities": [
+			{
+				"name": "Update EDA_EDL Control tables",
+				"description": "decide to update the feed tables and the metadata control with SUCCESS and not for FAILED ",
+				"type": "Switch",
+				"dependsOn": [],
+				"userProperties": [],
+				"typeProperties": {
+					"on": {
+						"value": "@pipeline().parameters.RUN_STATUS",
+						"type": "Expression"
+					},
+					"cases": [
+						{
+							"value": "FAILED",
+							"activities": [
+								{
+									"name": "Raise_Exception_Finally",
+									"description": "Call Raise Exception we got the FAILED status",
+									"type": "AppendVariable",
+									"dependsOn": [
+										{
+											"activity": "Update EDA_EDL Feed Tables on Failure",
+											"dependencyConditions": [
+												"Completed"
+											]
+										}
+									],
+									"userProperties": [],
+									"typeProperties": {
+										"variableName": "V_EXCEPTION_ARR",
+										"value": {
+											"value": "@array(pipeline().parameters.RUN_MESSAGE)",
+											"type": "Expression"
+										}
+									}
+								},
+								{
+									"name": "Update EDA_EDL Feed Tables on Failure",
+									"type": "SqlServerStoredProcedure",
+									"dependsOn": [],
+									"policy": {
+										"timeout": "7.00:00:00",
+										"retry": 0,
+										"retryIntervalInSeconds": 30,
+										"secureOutput": false,
+										"secureInput": false
+									},
+									"userProperties": [],
+									"typeProperties": {
+										"storedProcedureName": "[dbo].[UpdateEDAEDLFeedTablesOnFailure]",
+										"storedProcedureParameters": {
+											"COMMENTS": {
+												"value": {
+													"value": "@pipeline().parameters.RUN_MESSAGE",
+													"type": "Expression"
+												},
+												"type": "String"
+											},
+											"FEED_NAME": {
+												"value": {
+													"value": "@pipeline().parameters.JOB_NAME",
+													"type": "Expression"
+												},
+												"type": "String"
+											},
+											"RUN_ID": {
+												"value": {
+													"value": "@pipeline().parameters.EXEC_RUN_ID",
+													"type": "Expression"
+												},
+												"type": "String"
+											},
+											"STAGE": {
+												"value": {
+													"value": "@pipeline().parameters.STAGE_NAME",
+													"type": "Expression"
+												},
+												"type": "String"
+											},
+											"STATUS": {
+												"value": "0",
+												"type": "Int32"
+											},
+											"TASK_ID": {
+												"value": {
+													"value": "@pipeline().parameters.EXEC_RUN_ID",
+													"type": "Expression"
+												},
+												"type": "String"
+											},
+											"UPDATE_TS": {
+												"value": {
+													"value": "@formatDateTime(utcnow(),'yyyy-MM-dd HH:mm:ss')",
+													"type": "Expression"
+												},
+												"type": "DateTime"
+											}
+										}
+									},
+									"linkedServiceName": {
+										"referenceName": "ls_sqlmi_eda_edl_ctl_fw_db",
+										"type": "LinkedServiceReference"
+									}
+								}
+							]
+						},
+						{
+							"value": "SUCCESS",
+							"activities": [
+								{
+									"name": "Update EDA_EDL Feed and MetaData Tables on Success",
+									"type": "SqlServerStoredProcedure",
+									"dependsOn": [],
+									"policy": {
+										"timeout": "7.00:00:00",
+										"retry": 0,
+										"retryIntervalInSeconds": 30,
+										"secureOutput": false,
+										"secureInput": false
+									},
+									"userProperties": [],
+									"typeProperties": {
+										"storedProcedureName": "[dbo].[UpdateEDAEDLFeedTablesOnSuccess]",
+										"storedProcedureParameters": {
+											"FEED_NAME": {
+												"value": {
+													"value": "@pipeline().parameters.JOB_NAME",
+													"type": "Expression"
+												},
+												"type": "String"
+											},
+											"LAST_SUCC_JOB_RUN_TS": {
+												"value": {
+													"value": "@convertTimeZone(utcnow(),'UTC','Eastern Standard Time','yyyy-MM-dd HH:mm:ss')",
+													"type": "Expression"
+												},
+												"type": "DateTime"
+											},
+											"PREV_RUN_REC_DATE": {
+												"value": {
+													"value": "@if(or(equals(pipeline().parameters.PREV_DELTA_VALUE,'NULL'),empty(pipeline().parameters.PREV_DELTA_VALUE)),'1970-01-01 00:00:00.000',pipeline().parameters.PREV_DELTA_VALUE)",
+													"type": "Expression"
+												},
+												"type": "DateTime"
+											},
+											"REC_COUNT": {
+												"value": {
+													"value": "@pipeline().parameters.RECORD_COUNT",
+													"type": "Expression"
+												},
+												"type": "Int64"
+											},
+											"RUN_ID": {
+												"value": {
+													"value": "@pipeline().parameters.EXEC_RUN_ID",
+													"type": "Expression"
+												},
+												"type": "String"
+											},
+											"RUN_REC_DATE": {
+												"value": {
+													"value": "@if(or(equals(pipeline().parameters.CURR_DELTA_VALUE,'NULL'),empty(pipeline().parameters.CURR_DELTA_VALUE)),'1970-01-01 00:00:00.000',formatDateTime(pipeline().parameters.CURR_DELTA_VALUE,'yyyy-MM-dd HH:mm:ss'))",
+													"type": "Expression"
+												},
+												"type": "DateTime"
+											},
+											"STAGE": {
+												"value": {
+													"value": "@pipeline().parameters.STAGE_NAME",
+													"type": "Expression"
+												},
+												"type": "String"
+											},
+											"STATUS": {
+												"value": {
+													"value": "1",
+													"type": "Expression"
+												},
+												"type": "Int32"
+											},
+											"TASK_END_TS": {
+												"value": {
+													"value": "@convertTimeZone(pipeline().TriggerTime,'UTC','Eastern Standard Time','yyyy-MM-dd HH:mm:ss')",
+													"type": "Expression"
+												},
+												"type": "DateTime"
+											},
+											"TASK_ID": {
+												"value": {
+													"value": "@pipeline().parameters.EXEC_RUN_ID",
+													"type": "Expression"
+												},
+												"type": "String"
+											},
+											"UPDATE_TS": {
+												"value": {
+													"value": "@formatDateTime(utcnow(),'yyyy-MM-dd HH:mm:ss')",
+													"type": "Expression"
+												},
+												"type": "DateTime"
+											},
+											"COMMENTS": {
+												"value": {
+													"value": "@pipeline().parameters.RUN_MESSAGE",
+													"type": "Expression"
+												},
+												"type": "String"
+											},
+											"ELT_PREV_DELTA_VALUE": {
+												"value": {
+													"value": "@if(equals(pipeline().parameters.PREV_DELTA_VALUE,'NULL'),pipeline().parameters.PREV_DELTA_VALUE,formatDateTime(pipeline().parameters.PREV_DELTA_VALUE,'yyyy-MM-ddTHH:mm:ss'))",
+													"type": "Expression"
+												},
+												"type": "String"
+											},
+											"ELT_CURR_DELTA_VALUE": {
+												"value": {
+													"value": "@if(equals(pipeline().parameters.CURR_DELTA_VALUE,'NULL'),pipeline().parameters.CURR_DELTA_VALUE,formatDateTime(pipeline().parameters.CURR_DELTA_VALUE,'yyyy-MM-ddTHH:mm:ss'))",
+													"type": "Expression"
+												},
+												"type": "String"
+											}
+										}
+									},
+									"linkedServiceName": {
+										"referenceName": "ls_sqlmi_eda_edl_ctl_fw_db",
+										"type": "LinkedServiceReference"
+									}
+								}
+							]
+						}
+					]
+				}
+			}
+		],
+		"parameters": {
+			"EXEC_RUN_ID": {
+				"type": "string",
+				"defaultValue": "61d8cf05-ad3c-49cf-8fd2-10918140d837"
+			},
+			"RUN_STATUS": {
+				"type": "string",
+				"defaultValue": "SUCCESS"
+			},
+			"RUN_MESSAGE": {
+				"type": "string",
+				"defaultValue": "DC.DC_E_NR_NRCELLDU_DAY"
+			},
+			"PREV_DELTA_VALUE": {
+				"type": "string",
+				"defaultValue": "NULL"
+			},
+			"CURR_DELTA_VALUE": {
+				"type": "string",
+				"defaultValue": "NULL"
+			},
+			"JOB_NAME": {
+				"type": "string",
+				"defaultValue": "DC.DC_E_NR_NRCELLDU_DAY"
+			},
+			"TASK_START_TS": {
+				"type": "string",
+				"defaultValue": "NULL"
+			},
+			"RECORD_COUNT": {
+				"type": "string",
+				"defaultValue": "10"
+			},
+			"STAGE_NAME": {
+				"type": "string",
+				"defaultValue": "STAGE1"
+			}
+		},
+		"variables": {
+			"V_EXCEPTION_ARR": {
+				"type": "Array"
+			},
+			"V_ELT_METADATA_TABLE": {
+				"type": "String",
+				"defaultValue": "EltMetadataControl"
+			},
+			"V_METADATA_DEF_PARTITION_KEY": {
+				"type": "String",
+				"defaultValue": "DEFAULT"
+			},
+			"V_ELT_LOAD_CONTROL_TABLE": {
+				"type": "String",
+				"defaultValue": "EtlLoadControl"
+			}
+		},
+		"folder": {
+			"name": "Data Ingestion FrmWrk"
+		},
+		"annotations": [],
+		"lastPublishTime": "2022-03-09T16:28:00Z"
+	},
+	"type": "Microsoft.DataFactory/factories/pipelines"
+}

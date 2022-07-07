@@ -1,0 +1,351 @@
+{
+	"name": "CNE_BlobStorage",
+	"properties": {
+		"linkedServiceName": {
+			"referenceName": "CNE_Azure_Account",
+			"type": "LinkedServiceReference"
+		},
+		"folder": {
+			"name": "DataSets_4_DIF"
+		},
+		"annotations": [],
+		"type": "Orc",
+		"typeProperties": {
+			"location": {
+				"type": "AzureBlobStorageLocation",
+				"folderPath": "eniq.db/DC_E_ERBS_EUTRANCELLFDD_V_DAY",
+				"container": "nw-ods"
+			},
+			"enablePhysicalSchema": true
+		},
+		"schema": [
+			{
+				"type": "INT",
+				"name": "_col0"
+			},
+			{
+				"type": "INT",
+				"name": "_col1"
+			},
+			{
+				"type": "LONG",
+				"name": "_col2"
+			},
+			{
+				"type": "INT",
+				"name": "_col3"
+			},
+			{
+				"type": "STRING",
+				"name": "_col4"
+			},
+			{
+				"type": "STRING",
+				"name": "_col5"
+			},
+			{
+				"type": "INT",
+				"name": "_col6"
+			},
+			{
+				"type": "STRING",
+				"name": "_col7"
+			},
+			{
+				"type": "INT",
+				"name": "_col8"
+			},
+			{
+				"type": "STRING",
+				"name": "_col9"
+			},
+			{
+				"type": "STRING",
+				"name": "_col10"
+			},
+			{
+				"type": "STRING",
+				"name": "_col11"
+			},
+			{
+				"type": "STRING",
+				"name": "_col12"
+			},
+			{
+				"type": "INT",
+				"name": "_col13"
+			},
+			{
+				"type": "STRING",
+				"name": "_col14"
+			},
+			{
+				"type": "STRING",
+				"name": "_col15"
+			},
+			{
+				"type": "LONG",
+				"name": "_col16"
+			},
+			{
+				"precision": 18,
+				"scale": 0,
+				"type": "DECIMAL",
+				"name": "_col17"
+			},
+			{
+				"precision": 18,
+				"scale": 0,
+				"type": "DECIMAL",
+				"name": "_col18"
+			},
+			{
+				"precision": 18,
+				"scale": 0,
+				"type": "DECIMAL",
+				"name": "_col19"
+			},
+			{
+				"precision": 18,
+				"scale": 0,
+				"type": "DECIMAL",
+				"name": "_col20"
+			},
+			{
+				"precision": 18,
+				"scale": 0,
+				"type": "DECIMAL",
+				"name": "_col21"
+			},
+			{
+				"precision": 18,
+				"scale": 0,
+				"type": "DECIMAL",
+				"name": "_col22"
+			},
+			{
+				"precision": 18,
+				"scale": 0,
+				"type": "DECIMAL",
+				"name": "_col23"
+			},
+			{
+				"precision": 18,
+				"scale": 0,
+				"type": "DECIMAL",
+				"name": "_col24"
+			},
+			{
+				"precision": 18,
+				"scale": 0,
+				"type": "DECIMAL",
+				"name": "_col25"
+			},
+			{
+				"precision": 18,
+				"scale": 0,
+				"type": "DECIMAL",
+				"name": "_col26"
+			},
+			{
+				"precision": 18,
+				"scale": 0,
+				"type": "DECIMAL",
+				"name": "_col27"
+			},
+			{
+				"precision": 18,
+				"scale": 0,
+				"type": "DECIMAL",
+				"name": "_col28"
+			},
+			{
+				"precision": 18,
+				"scale": 0,
+				"type": "DECIMAL",
+				"name": "_col29"
+			},
+			{
+				"precision": 18,
+				"scale": 0,
+				"type": "DECIMAL",
+				"name": "_col30"
+			},
+			{
+				"precision": 18,
+				"scale": 0,
+				"type": "DECIMAL",
+				"name": "_col31"
+			},
+			{
+				"precision": 18,
+				"scale": 0,
+				"type": "DECIMAL",
+				"name": "_col32"
+			},
+			{
+				"precision": 18,
+				"scale": 0,
+				"type": "DECIMAL",
+				"name": "_col33"
+			},
+			{
+				"precision": 18,
+				"scale": 0,
+				"type": "DECIMAL",
+				"name": "_col34"
+			},
+			{
+				"precision": 18,
+				"scale": 0,
+				"type": "DECIMAL",
+				"name": "_col35"
+			},
+			{
+				"precision": 18,
+				"scale": 0,
+				"type": "DECIMAL",
+				"name": "_col36"
+			},
+			{
+				"precision": 18,
+				"scale": 0,
+				"type": "DECIMAL",
+				"name": "_col37"
+			},
+			{
+				"precision": 18,
+				"scale": 0,
+				"type": "DECIMAL",
+				"name": "_col38"
+			},
+			{
+				"precision": 18,
+				"scale": 0,
+				"type": "DECIMAL",
+				"name": "_col39"
+			},
+			{
+				"precision": 18,
+				"scale": 0,
+				"type": "DECIMAL",
+				"name": "_col40"
+			},
+			{
+				"precision": 18,
+				"scale": 0,
+				"type": "DECIMAL",
+				"name": "_col41"
+			},
+			{
+				"precision": 18,
+				"scale": 0,
+				"type": "DECIMAL",
+				"name": "_col42"
+			},
+			{
+				"precision": 18,
+				"scale": 0,
+				"type": "DECIMAL",
+				"name": "_col43"
+			},
+			{
+				"precision": 18,
+				"scale": 0,
+				"type": "DECIMAL",
+				"name": "_col44"
+			},
+			{
+				"precision": 18,
+				"scale": 0,
+				"type": "DECIMAL",
+				"name": "_col45"
+			},
+			{
+				"precision": 18,
+				"scale": 0,
+				"type": "DECIMAL",
+				"name": "_col46"
+			},
+			{
+				"precision": 18,
+				"scale": 0,
+				"type": "DECIMAL",
+				"name": "_col47"
+			},
+			{
+				"precision": 18,
+				"scale": 0,
+				"type": "DECIMAL",
+				"name": "_col48"
+			},
+			{
+				"precision": 18,
+				"scale": 0,
+				"type": "DECIMAL",
+				"name": "_col49"
+			},
+			{
+				"precision": 18,
+				"scale": 0,
+				"type": "DECIMAL",
+				"name": "_col50"
+			},
+			{
+				"precision": 18,
+				"scale": 0,
+				"type": "DECIMAL",
+				"name": "_col51"
+			},
+			{
+				"precision": 18,
+				"scale": 0,
+				"type": "DECIMAL",
+				"name": "_col52"
+			},
+			{
+				"precision": 18,
+				"scale": 0,
+				"type": "DECIMAL",
+				"name": "_col53"
+			},
+			{
+				"precision": 18,
+				"scale": 0,
+				"type": "DECIMAL",
+				"name": "_col54"
+			},
+			{
+				"precision": 18,
+				"scale": 0,
+				"type": "DECIMAL",
+				"name": "_col55"
+			},
+			{
+				"type": "STRING",
+				"name": "_col56"
+			},
+			{
+				"type": "LONG",
+				"name": "_col57"
+			},
+			{
+				"type": "STRING",
+				"name": "_col58"
+			},
+			{
+				"type": "STRING",
+				"name": "_col59"
+			},
+			{
+				"type": "INT",
+				"name": "_col60"
+			},
+			{
+				"type": "INT",
+				"name": "_col61"
+			}
+		]
+	},
+	"type": "Microsoft.DataFactory/factories/datasets"
+}

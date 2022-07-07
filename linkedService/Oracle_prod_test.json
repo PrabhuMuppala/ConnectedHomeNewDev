@@ -1,0 +1,16 @@
+{
+	"name": "Oracle_prod_test",
+	"type": "Microsoft.DataFactory/factories/linkedservices",
+	"properties": {
+		"annotations": [],
+		"type": "Oracle",
+		"typeProperties": {
+			"connectionString": "host=mdcocdm-scan.rci.rogers.com;port=1531;servicename=BDWPROD;user id=MM12101154",
+			"encryptedCredential": "eyJDcmVkZW50aWFsSWQiOiIyYjk4YTcxZi1mYmVjLTQ1MTUtODFiMC1hZDM3NjAyNTIyNTQiLCJWZXJzaW9uIjoiMi4wIiwiQ2xhc3NUeXBlIjoiTWljcm9zb2Z0LkRhdGFQcm94eS5Db3JlLkludGVyU2VydmljZURhdGFDb250cmFjdC5DcmVkZW50aWFsU1UwNkNZMTQifQ=="
+		},
+		"connectVia": {
+			"referenceName": "networthir",
+			"type": "IntegrationRuntimeReference"
+		}
+	}
+}

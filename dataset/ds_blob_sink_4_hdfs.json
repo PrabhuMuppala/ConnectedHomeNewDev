@@ -1,0 +1,39 @@
+{
+	"name": "ds_blob_sink_4_hdfs",
+	"properties": {
+		"description": "A generic blob to store the HDFS pulled files as Binary.\n\nthis can be replaced with blob_binary_datasets",
+		"linkedServiceName": {
+			"referenceName": "ls_az_stg_acc",
+			"type": "LinkedServiceReference"
+		},
+		"parameters": {
+			"RDS_STAGE_LOC": {
+				"type": "string",
+				"defaultValue": "NULL"
+			},
+			"RDS_STAGE_FOLDER": {
+				"type": "string",
+				"defaultValue": "NULL"
+			}
+		},
+		"folder": {
+			"name": "DataSets_4_DIF"
+		},
+		"annotations": [],
+		"type": "Binary",
+		"typeProperties": {
+			"location": {
+				"type": "AzureBlobStorageLocation",
+				"folderPath": {
+					"value": "@dataset().RDS_STAGE_FOLDER",
+					"type": "Expression"
+				},
+				"container": {
+					"value": "@dataset().RDS_STAGE_LOC",
+					"type": "Expression"
+				}
+			}
+		}
+	},
+	"type": "Microsoft.DataFactory/factories/datasets"
+}

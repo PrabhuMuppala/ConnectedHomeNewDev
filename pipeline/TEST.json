@@ -1,0 +1,34 @@
+{
+	"name": "TEST",
+	"properties": {
+		"activities": [
+			{
+				"name": "Lookup1",
+				"type": "Lookup",
+				"dependsOn": [],
+				"policy": {
+					"timeout": "7.00:00:00",
+					"retry": 0,
+					"retryIntervalInSeconds": 30,
+					"secureOutput": false,
+					"secureInput": false
+				},
+				"userProperties": [],
+				"typeProperties": {
+					"source": {
+						"type": "SqlMISource",
+						"sqlReaderQuery": "\nupdate dbo.elt_metadata_control \nset SRC_TBL_PK_CSV= 'NULL'\nwhere JOB_NAME like '%LOAD_ORA_BDW_APP_IBRO_IBRO_HOUSEHOLD_ACTIVITY_CH%'",
+						"partitionOption": "None"
+					},
+					"dataset": {
+						"referenceName": "EDA_EDL_SQLMI_Datasets",
+						"type": "DatasetReference"
+					}
+				}
+			}
+		],
+		"annotations": [],
+		"lastPublishTime": "2022-03-09T16:28:00Z"
+	},
+	"type": "Microsoft.DataFactory/factories/pipelines"
+}

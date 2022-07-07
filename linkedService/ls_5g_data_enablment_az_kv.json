@@ -1,0 +1,12 @@
+{
+	"name": "ls_5g_data_enablment_az_kv",
+	"type": "Microsoft.DataFactory/factories/linkedservices",
+	"properties": {
+		"description": "Key Vault for Prod Linked Service",
+		"annotations": [],
+		"type": "AzureKeyVault",
+		"typeProperties": {
+			"baseUrl": "https://dmtnpesybasekeyvault.vault.azure.net/"
+		}
+	}
+}

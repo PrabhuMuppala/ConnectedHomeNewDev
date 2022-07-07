@@ -1,0 +1,32 @@
+{
+	"name": "ls_smoke_databricks",
+	"type": "Microsoft.DataFactory/factories/linkedservices",
+	"properties": {
+		"description": "Linked Service for connecting to ADB from ADF pipelines ",
+		"annotations": [],
+		"type": "AzureDatabricks",
+		"typeProperties": {
+			"domain": "https://canadacentral.azuredatabricks.net",
+			"accessToken": {
+				"type": "AzureKeyVaultSecret",
+				"store": {
+					"referenceName": "ls_smoke_az_kv",
+					"type": "LinkedServiceReference"
+				},
+				"secretName": "secret-smoke-dbricks-token",
+				"secretVersion": ""
+			},
+			"newClusterNodeType": "Standard_DS3_v2",
+			"newClusterNumOfWorker": "2",
+			"newClusterSparkConf": {
+				"spark.hadoop.mapreduce.fileoutputcommitter.cleanup.skipped": "false",
+				"spark.yarn.preserve.staging.files": "false"
+			},
+			"newClusterSparkEnvVars": {
+				"PYSPARK_PYTHON": "/databricks/python3/bin/python3"
+			},
+			"newClusterVersion": "5.5.x-scala2.11",
+			"newClusterInitScripts": []
+		}
+	}
+}

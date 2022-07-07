@@ -1,0 +1,178 @@
+{
+	"name": "PL_ARCHIVER",
+	"properties": {
+		"activities": [
+			{
+				"name": "Get  Files to Archive",
+				"description": "Lists the files to archive",
+				"type": "GetMetadata",
+				"dependsOn": [],
+				"policy": {
+					"timeout": "7.00:00:00",
+					"retry": 0,
+					"retryIntervalInSeconds": 30,
+					"secureOutput": false,
+					"secureInput": false
+				},
+				"userProperties": [],
+				"typeProperties": {
+					"dataset": {
+						"referenceName": "BLOB_Binary_Datasets",
+						"type": "DatasetReference",
+						"parameters": {
+							"CONTAINER": {
+								"value": "@pipeline().parameters.RDS_STAGE_LOC",
+								"type": "Expression"
+							},
+							"FOLDER_FILE": {
+								"value": "@pipeline().parameters.DEST_TBL",
+								"type": "Expression"
+							}
+						}
+					},
+					"fieldList": [
+						"childItems",
+						"itemName",
+						"exists",
+						"itemType"
+					],
+					"storeSettings": {
+						"type": "AzureBlobStorageReadSettings",
+						"recursive": true
+					},
+					"formatSettings": {
+						"type": "BinaryReadSettings"
+					}
+				}
+			},
+			{
+				"name": "If file found to archive it",
+				"description": "Start to Archive if files are found",
+				"type": "IfCondition",
+				"dependsOn": [
+					{
+						"activity": "Get  Files to Archive",
+						"dependencyConditions": [
+							"Succeeded"
+						]
+					}
+				],
+				"userProperties": [],
+				"typeProperties": {
+					"expression": {
+						"value": "@activity('Get  Files to Archive').output.exists",
+						"type": "Expression"
+					},
+					"ifTrueActivities": [
+						{
+							"name": "Copy 2 Archive Blob",
+							"description": "This blob would retain for 7 days or so based on blob policy. please check with Admin !!",
+							"type": "Copy",
+							"dependsOn": [],
+							"policy": {
+								"timeout": "7.00:00:00",
+								"retry": 0,
+								"retryIntervalInSeconds": 30,
+								"secureOutput": false,
+								"secureInput": false
+							},
+							"userProperties": [],
+							"typeProperties": {
+								"source": {
+									"type": "BinarySource",
+									"storeSettings": {
+										"type": "AzureBlobFSReadSettings",
+										"recursive": true
+									},
+									"formatSettings": {
+										"type": "BinaryReadSettings"
+									}
+								},
+								"sink": {
+									"type": "BinarySink",
+									"storeSettings": {
+										"type": "AzureBlobFSWriteSettings"
+									}
+								},
+								"enableStaging": false,
+								"logStorageSettings": {
+									"linkedServiceName": {
+										"referenceName": "ls_az_stg_acc",
+										"type": "LinkedServiceReference"
+									},
+									"path": {
+										"value": "@concat('logs/', pipeline().parameters.SRC_TYPE, '/', pipeline().parameters.RDS_STAGE_LOC, '/', pipeline().parameters.DEST_TBL)",
+										"type": "Expression"
+									}
+								},
+								"dataIntegrationUnits": 2
+							},
+							"inputs": [
+								{
+									"referenceName": "ds_4_deletion",
+									"type": "DatasetReference",
+									"parameters": {
+										"container": {
+											"value": "@pipeline().parameters.RDS_STAGE_LOC",
+											"type": "Expression"
+										},
+										"path": {
+											"value": "@pipeline().parameters.DEST_TBL",
+											"type": "Expression"
+										}
+									}
+								}
+							],
+							"outputs": [
+								{
+									"referenceName": "ds_4_deletion",
+									"type": "DatasetReference",
+									"parameters": {
+										"container": {
+											"value": "@variables('NW_ARCHIVE_BLOB')",
+											"type": "Expression"
+										},
+										"path": {
+											"value": "@concat(pipeline().parameters.SRC_TYPE, '/', pipeline().parameters.DEST_TBL, '/', utcnow())",
+											"type": "Expression"
+										}
+									}
+								}
+							]
+						}
+					]
+				}
+			}
+		],
+		"parameters": {
+			"RDS_STAGE_LOC": {
+				"type": "string",
+				"defaultValue": "@concat(variables('V_RDS_STAGE_LOC'), '/', pipeline().parameters.SRC_TYPE, '-STAGE')"
+			},
+			"DEST_TBL": {
+				"type": "string",
+				"defaultValue": "@pipeline().parameters.DEST_TBL"
+			},
+			"SRC_TYPE": {
+				"type": "string",
+				"defaultValue": "NTW_FTP"
+			},
+			"ID": {
+				"type": "string",
+				"defaultValue": "utc_now"
+			}
+		},
+		"variables": {
+			"NW_ARCHIVE_BLOB": {
+				"type": "String",
+				"defaultValue": "rogers-eda-raw-prd-sensitive-storage/networth/nw-archive"
+			}
+		},
+		"folder": {
+			"name": "Data Ingestion FrmWrk"
+		},
+		"annotations": [],
+		"lastPublishTime": "2022-03-09T16:28:00Z"
+	},
+	"type": "Microsoft.DataFactory/factories/pipelines"
+}

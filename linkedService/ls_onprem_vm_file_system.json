@@ -1,0 +1,20 @@
+{
+	"name": "ls_onprem_vm_file_system",
+	"type": "Microsoft.DataFactory/factories/linkedservices",
+	"properties": {
+		"annotations": [],
+		"type": "FileServer",
+		"typeProperties": {
+			"host": "\\\\mdcnascifs.rci.rogers.ca\\RPA",
+			"userId": "SERV_SMKE_FILE_MAZ_P@RCI.ROGERS.CA",
+			"password": {
+				"type": "AzureKeyVaultSecret",
+				"store": {
+					"referenceName": "ls_smoke_az_kv",
+					"type": "LinkedServiceReference"
+				},
+				"secretName": "secret-smoke-onprem-vm-fs"
+			}
+		}
+	}
+}

@@ -1,0 +1,25 @@
+{
+	"name": "ls_ftp_ntw_server_new",
+	"type": "Microsoft.DataFactory/factories/linkedservices",
+	"properties": {
+		"description": "Linked Service to connect to FTP Server created for Network Porfolio",
+		"annotations": [],
+		"type": "FtpServer",
+		"typeProperties": {
+			"host": "dmtsybasvmap001.rci.rogers.ca",
+			"port": 21,
+			"enableSsl": true,
+			"enableServerCertificateValidation": true,
+			"authenticationType": "Basic",
+			"userName": "nw-ftp-adf-user",
+			"password": {
+				"type": "AzureKeyVaultSecret",
+				"store": {
+					"referenceName": "ls_smoke_az_kv",
+					"type": "LinkedServiceReference"
+				},
+				"secretName": "secret-nw-ftp-server-adf-pwd"
+			}
+		}
+	}
+}

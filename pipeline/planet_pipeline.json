@@ -1,0 +1,88 @@
+{
+	"name": "planet_pipeline",
+	"properties": {
+		"description": "pipeline to read and process Planet coverage data files ",
+		"activities": [
+			{
+				"name": "Notebook1",
+				"type": "DatabricksNotebook",
+				"dependsOn": [],
+				"policy": {
+					"timeout": "7.00:00:00",
+					"retry": 0,
+					"retryIntervalInSeconds": 30,
+					"secureOutput": false,
+					"secureInput": false
+				},
+				"userProperties": [],
+				"typeProperties": {
+					"notebookPath": "/Users/sachin.sharma@rci.rogers.ca/param_test",
+					"baseParameters": {
+						"dir": {
+							"value": "@pipeline().parameters.dir",
+							"type": "Expression"
+						},
+						"month": {
+							"value": "@pipeline().parameters.month",
+							"type": "Expression"
+						},
+						"year": {
+							"value": "@pipeline().parameters.year",
+							"type": "Expression"
+						}
+					}
+				},
+				"linkedServiceName": {
+					"referenceName": "Networth_DataBricks",
+					"type": "LinkedServiceReference"
+				}
+			},
+			{
+				"name": "result_variable",
+				"type": "SetVariable",
+				"dependsOn": [
+					{
+						"activity": "Notebook1",
+						"dependencyConditions": [
+							"Succeeded"
+						]
+					}
+				],
+				"userProperties": [],
+				"typeProperties": {
+					"variableName": "dbr_result",
+					"value": {
+						"value": "@activity('Notebook1').output.runOutput",
+						"type": "Expression"
+					}
+				}
+			}
+		],
+		"parameters": {
+			"dir": {
+				"type": "string",
+				"defaultValue": "/dbfs/planet-files/"
+			},
+			"year": {
+				"type": "string",
+				"defaultValue": "2022"
+			},
+			"month": {
+				"type": "string",
+				"defaultValue": "01"
+			},
+			"result": {
+				"type": "string",
+				"defaultValue": "none"
+			}
+		},
+		"variables": {
+			"dbr_result": {
+				"type": "String"
+			}
+		},
+		"annotations": [],
+		"lastPublishTime": "2022-03-09T16:28:00Z"
+	},
+	"type": "Microsoft.DataFactory/factories/pipelines"
+}

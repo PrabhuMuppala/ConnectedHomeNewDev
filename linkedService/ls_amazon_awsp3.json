@@ -1,0 +1,32 @@
+{
+	"name": "ls_amazon_awsp3",
+	"type": "Microsoft.DataFactory/factories/linkedservices",
+	"properties": {
+		"description": "Connect to AWS S3 file system to copy AWSP3 latest zip file",
+		"annotations": [],
+		"type": "Sftp",
+		"typeProperties": {
+			"host": "s-db5221ea609b4fe1b.server.transfer.us-east-1.amazonaws.com",
+			"port": 22,
+			"skipHostKeyValidation": true,
+			"authenticationType": "SshPublicKey",
+			"userName": "rogers",
+			"privateKeyContent": {
+				"type": "AzureKeyVaultSecret",
+				"store": {
+					"referenceName": "ls_5g_data_enablment_az_kv",
+					"type": "LinkedServiceReference"
+				},
+				"secretName": "secret-5g-data-enablement-awsp3-id-pwd"
+			},
+			"passPhrase": {
+				"type": "AzureKeyVaultSecret",
+				"store": {
+					"referenceName": "ls_5g_data_enablment_az_kv",
+					"type": "LinkedServiceReference"
+				},
+				"secretName": "secret-5g-data-enablement-awsp3-id-pwd"
+			}
+		}
+	}
+}

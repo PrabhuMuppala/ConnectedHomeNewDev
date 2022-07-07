@@ -1,0 +1,28 @@
+{
+	"name": "ls_databricks_eniq_raw",
+	"type": "Microsoft.DataFactory/factories/linkedservices",
+	"properties": {
+		"description": "Linked Service for connecting to ADB from ADF pipelines ",
+		"annotations": [],
+		"type": "AzureDatabricks",
+		"typeProperties": {
+			"domain": "https://canadacentral.azuredatabricks.net",
+			"accessToken": {
+				"type": "AzureKeyVaultSecret",
+				"store": {
+					"referenceName": "ls_5g_data_enablment_az_kv",
+					"type": "LinkedServiceReference"
+				},
+				"secretName": "secret-5g-data-enablement-dbricks-token",
+				"secretVersion": ""
+			},
+			"newClusterNodeType": "Standard_DS5_v2",
+			"newClusterNumOfWorker": "2",
+			"newClusterSparkConf": {
+				"spark.hadoop.mapreduce.fileoutputcommitter.cleanup.skipped": "false",
+				"spark.yarn.preserve.staging.files": "false"
+			},
+			"newClusterVersion": "6.5.x-scala2.11"
+		}
+	}
+}

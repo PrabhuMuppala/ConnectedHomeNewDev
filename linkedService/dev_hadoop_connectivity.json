@@ -1,0 +1,25 @@
+{
+	"name": "dev_hadoop_connectivity",
+	"type": "Microsoft.DataFactory/factories/linkedservices",
+	"properties": {
+		"annotations": [],
+		"type": "Hdfs",
+		"typeProperties": {
+			"url": "http://ehdpdd109.dev.dmt.rogers.com:50070/webhdfs/v1/",
+			"authenticationType": "Windows",
+			"userName": "serv_netwr_maz_hdp_d@RCI.ROGERS.CA",
+			"password": {
+				"type": "AzureKeyVaultSecret",
+				"store": {
+					"referenceName": "Networth_Key_Vault",
+					"type": "LinkedServiceReference"
+				},
+				"secretName": "secret-networth-hdfs-service-id-pwd"
+			}
+		},
+		"connectVia": {
+			"referenceName": "networthir",
+			"type": "IntegrationRuntimeReference"
+		}
+	}
+}

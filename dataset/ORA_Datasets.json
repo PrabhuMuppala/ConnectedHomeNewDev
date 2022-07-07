@@ -1,0 +1,55 @@
+{
+	"name": "ORA_Datasets",
+	"properties": {
+		"linkedServiceName": {
+			"referenceName": "ls_ora_db",
+			"type": "LinkedServiceReference",
+			"parameters": {
+				"hostNm": {
+					"value": "@dataset().hostNm",
+					"type": "Expression"
+				},
+				"port": {
+					"value": "@dataset().port",
+					"type": "Expression"
+				},
+				"serviceNm": {
+					"value": "@dataset().serviceNm",
+					"type": "Expression"
+				},
+				"pwd": {
+					"value": "@dataset().pwd",
+					"type": "Expression"
+				},
+				"UserNm": {
+					"value": "@dataset().userNm",
+					"type": "Expression"
+				}
+			}
+		},
+		"parameters": {
+			"hostNm": {
+				"type": "string"
+			},
+			"port": {
+				"type": "string"
+			},
+			"serviceNm": {
+				"type": "string"
+			},
+			"userNm": {
+				"type": "string"
+			},
+			"pwd": {
+				"type": "string"
+			}
+		},
+		"folder": {
+			"name": "DataSets_4_DIF"
+		},
+		"annotations": [],
+		"type": "OracleTable",
+		"schema": []
+	},
+	"type": "Microsoft.DataFactory/factories/datasets"
+}

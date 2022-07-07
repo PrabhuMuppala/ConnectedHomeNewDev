@@ -1,0 +1,20 @@
+{
+	"name": "ORA_ELA_Datasets",
+	"properties": {
+		"linkedServiceName": {
+			"referenceName": "ls_bdw_oracle",
+			"type": "LinkedServiceReference"
+		},
+		"folder": {
+			"name": "DataSets_4_DIF"
+		},
+		"annotations": [],
+		"type": "OracleTable",
+		"schema": [],
+		"typeProperties": {
+			"schema": "",
+			"table": ""
+		}
+	},
+	"type": "Microsoft.DataFactory/factories/datasets"
+}

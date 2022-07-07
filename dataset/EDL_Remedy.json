@@ -1,0 +1,24 @@
+{
+	"name": "EDL_Remedy",
+	"properties": {
+		"linkedServiceName": {
+			"referenceName": "edl_storage_account",
+			"type": "LinkedServiceReference"
+		},
+		"folder": {
+			"name": "DataSets_4_DIF"
+		},
+		"annotations": [],
+		"type": "Orc",
+		"typeProperties": {
+			"location": {
+				"type": "AzureBlobStorageLocation",
+				"folderPath": "networth/remedy.db/RADIOENG_ERP_SITEINFO",
+				"container": "rogers-eda-raw-prd-sensitive-storage"
+			},
+			"enablePhysicalSchema": true
+		},
+		"schema": []
+	},
+	"type": "Microsoft.DataFactory/factories/datasets"
+}

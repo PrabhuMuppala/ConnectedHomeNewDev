@@ -1,0 +1,28 @@
+{
+	"name": "DS_ETL_LOAD_CONTROL",
+	"properties": {
+		"description": "Generic Dataset representing azure storage tables",
+		"linkedServiceName": {
+			"referenceName": "ls_az_storage_table",
+			"type": "LinkedServiceReference"
+		},
+		"parameters": {
+			"AZ_STORAGE_TABLE": {
+				"type": "String"
+			}
+		},
+		"folder": {
+			"name": "DataSets_4_DIF"
+		},
+		"annotations": [],
+		"type": "AzureTable",
+		"schema": [],
+		"typeProperties": {
+			"tableName": {
+				"value": "@dataset().AZ_STORAGE_TABLE",
+				"type": "Expression"
+			}
+		}
+	},
+	"type": "Microsoft.DataFactory/factories/datasets"
+}

@@ -1,0 +1,661 @@
+{
+	"name": "PL_HDFS_MAIN",
+	"properties": {
+		"activities": [
+			{
+				"name": "Switch Based on PARTITION_THRESHOLD_TYPE",
+				"type": "Switch",
+				"dependsOn": [],
+				"userProperties": [],
+				"typeProperties": {
+					"on": {
+						"value": "@pipeline().parameters.PARTITION_THRESHOLD_TYPE",
+						"type": "Expression"
+					},
+					"cases": [
+						{
+							"value": "DATE",
+							"activities": [
+								{
+									"name": "Execute PL_HDFS_RETRIEVAL DATE",
+									"type": "ExecutePipeline",
+									"dependsOn": [],
+									"userProperties": [],
+									"typeProperties": {
+										"pipeline": {
+											"referenceName": "PL_HDFS_RETRIEVAL",
+											"type": "PipelineReference"
+										},
+										"waitOnCompletion": true,
+										"parameters": {
+											"DELTA_CURR_MAX_VALUE": {
+												"value": "@pipeline().parameters.DELTA_CURR_MAX_VALUE",
+												"type": "Expression"
+											},
+											"SRC_TBL_FILE_PATH": {
+												"value": "@pipeline().parameters.SRC_TBL_FILE_PATH",
+												"type": "Expression"
+											},
+											"HDFS_PARTITION_COL_FORMAT": {
+												"value": "@pipeline().parameters.HDFS_PARTITION_COL_FORMAT",
+												"type": "Expression"
+											},
+											"PARTITION_THRESHOLD": {
+												"value": "@pipeline().parameters.PARTITION_THRESHOLD",
+												"type": "Expression"
+											},
+											"PARTITION_THRESHOLD_TYPE": {
+												"value": "@pipeline().parameters.PARTITION_THRESHOLD_TYPE",
+												"type": "Expression"
+											},
+											"ODS_LOC": {
+												"value": "@pipeline().parameters.ODS_LOC",
+												"type": "Expression"
+											},
+											"WINDOW_START_TIME_UTC": {
+												"value": "@pipeline().parameters.WINDOW_START_TIME_UTC",
+												"type": "Expression"
+											},
+											"WINDOW_END_TIME_UTC": {
+												"value": "@pipeline().parameters.WINDOW_END_TIME_UTC",
+												"type": "Expression"
+											},
+											"DEST_TYPE": {
+												"value": "@pipeline().parameters.DEST_TYPE",
+												"type": "Expression"
+											},
+											"DEST_TBL": {
+												"value": "@pipeline().parameters.DEST_TBL",
+												"type": "Expression"
+											},
+											"SRC_TYPE": {
+												"value": "@pipeline().parameters.SRC_TYPE",
+												"type": "Expression"
+											},
+											"SRC_DELTA_COL": {
+												"value": "@pipeline().parameters.SRC_DELTA_COL",
+												"type": "Expression"
+											}
+										}
+									}
+								}
+							]
+						},
+						{
+							"value": "NULL",
+							"activities": [
+								{
+									"name": "HDFS_PULL_FRM_PRIMARY_WEBHDFS",
+									"description": "Pull the files from HDFS cluster using timebased water marking !!",
+									"type": "Copy",
+									"dependsOn": [],
+									"policy": {
+										"timeout": "7.00:00:00",
+										"retry": 0,
+										"retryIntervalInSeconds": 30,
+										"secureOutput": false,
+										"secureInput": false
+									},
+									"userProperties": [],
+									"typeProperties": {
+										"source": {
+											"type": "BinarySource",
+											"storeSettings": {
+												"type": "HdfsReadSettings",
+												"recursive": true,
+												"modifiedDatetimeStart": {
+													"value": "@{pipeline().parameters.WINDOW_START_TIME_UTC}",
+													"type": "Expression"
+												},
+												"modifiedDatetimeEnd": {
+													"value": "@{pipeline().parameters.WINDOW_END_TIME_UTC}",
+													"type": "Expression"
+												},
+												"wildcardFolderPath": {
+													"value": "@{concat(pipeline().parameters.SRC_TBL_FILE_PATH)}",
+													"type": "Expression"
+												},
+												"wildcardFileName": "*"
+											},
+											"formatSettings": {
+												"type": "BinaryReadSettings"
+											}
+										},
+										"sink": {
+											"type": "BinarySink",
+											"storeSettings": {
+												"type": "AzureBlobStorageWriteSettings"
+											}
+										},
+										"enableStaging": false,
+										"validateDataConsistency": false
+									},
+									"inputs": [
+										{
+											"referenceName": "HDFS_Datasets",
+											"type": "DatasetReference"
+										}
+									],
+									"outputs": [
+										{
+											"referenceName": "ds_blob_sink_4_hdfs",
+											"type": "DatasetReference",
+											"parameters": {
+												"RDS_STAGE_LOC": {
+													"value": "@if(equals(pipeline().parameters.DEST_TYPE, 'ODS'), variables('V_ODS_LOC'), concat(variables('V_RDS_STAGE_LOC'), '/', pipeline().parameters.SRC_TYPE, '-STAGE'))",
+													"type": "Expression"
+												},
+												"RDS_STAGE_FOLDER": {
+													"value": "@if(equals(pipeline().parameters.DEST_TYPE, 'ODS'), pipeline().parameters.ODS_LOC, pipeline().parameters.DEST_TBL)",
+													"type": "Expression"
+												}
+											}
+										}
+									]
+								},
+								{
+									"name": "Set V_SRC_COUNT_DERIVED",
+									"description": "For HDFS, its not the row count but just the size of data written !!",
+									"type": "SetVariable",
+									"dependsOn": [
+										{
+											"activity": "HDFS_PULL_FRM_PRIMARY_WEBHDFS",
+											"dependencyConditions": [
+												"Succeeded"
+											]
+										}
+									],
+									"userProperties": [],
+									"typeProperties": {
+										"variableName": "V_SRC_COUNT_DERIVED",
+										"value": {
+											"value": "@string(activity('HDFS_PULL_FRM_PRIMARY_WEBHDFS').output.dataWritten)",
+											"type": "Expression"
+										}
+									}
+								},
+								{
+									"name": "ARCHIVE HDFS FILES",
+									"description": "as its mv ie copy and delete from FTP to RDS. if 5 files and 4 copied 1 failed at src you would have only 1 file left. To Rerun Support need to copy from archive for the latest run",
+									"type": "ExecutePipeline",
+									"dependsOn": [
+										{
+											"activity": "Set V_SRC_COUNT_DERIVED",
+											"dependencyConditions": [
+												"Succeeded"
+											]
+										}
+									],
+									"userProperties": [],
+									"typeProperties": {
+										"pipeline": {
+											"referenceName": "PL_ARCHIVER",
+											"type": "PipelineReference"
+										},
+										"waitOnCompletion": true,
+										"parameters": {
+											"RDS_STAGE_LOC": {
+												"value": "@concat(variables('V_RDS_STAGE_LOC'), '/', pipeline().parameters.SRC_TYPE, '-STAGE')",
+												"type": "Expression"
+											},
+											"DEST_TBL": {
+												"value": "@pipeline().parameters.DEST_TBL",
+												"type": "Expression"
+											},
+											"SRC_TYPE": {
+												"value": "@pipeline().parameters.SRC_TYPE",
+												"type": "Expression"
+											}
+										}
+									}
+								},
+								{
+									"name": "HDFS_PULL_FRM_SECONDARY_WEBHDFS",
+									"description": "Pull the files from HDFS cluster using timebased water marking !!",
+									"type": "Copy",
+									"dependsOn": [
+										{
+											"activity": "Set IS_ERR_TO_RAISE to Y",
+											"dependencyConditions": [
+												"Succeeded"
+											]
+										}
+									],
+									"policy": {
+										"timeout": "7.00:00:00",
+										"retry": 0,
+										"retryIntervalInSeconds": 30,
+										"secureOutput": false,
+										"secureInput": false
+									},
+									"userProperties": [],
+									"typeProperties": {
+										"source": {
+											"type": "BinarySource",
+											"storeSettings": {
+												"type": "HdfsReadSettings",
+												"recursive": true,
+												"modifiedDatetimeStart": {
+													"value": "@{pipeline().parameters.WINDOW_START_TIME_UTC}",
+													"type": "Expression"
+												},
+												"modifiedDatetimeEnd": {
+													"value": "@{pipeline().parameters.WINDOW_END_TIME_UTC}",
+													"type": "Expression"
+												},
+												"wildcardFolderPath": {
+													"value": "@{concat(pipeline().parameters.SRC_TBL_FILE_PATH)}",
+													"type": "Expression"
+												},
+												"wildcardFileName": "*"
+											},
+											"formatSettings": {
+												"type": "BinaryReadSettings"
+											}
+										},
+										"sink": {
+											"type": "BinarySink",
+											"storeSettings": {
+												"type": "AzureBlobStorageWriteSettings"
+											}
+										},
+										"enableStaging": false,
+										"validateDataConsistency": false
+									},
+									"inputs": [
+										{
+											"referenceName": "HDFS_Secondary_Datasets",
+											"type": "DatasetReference"
+										}
+									],
+									"outputs": [
+										{
+											"referenceName": "ds_blob_sink_4_hdfs",
+											"type": "DatasetReference",
+											"parameters": {
+												"RDS_STAGE_LOC": {
+													"value": "@if(equals(pipeline().parameters.DEST_TYPE, 'ODS'), variables('V_ODS_LOC'), concat(variables('V_RDS_STAGE_LOC'), '/', pipeline().parameters.SRC_TYPE, '-STAGE'))",
+													"type": "Expression"
+												},
+												"RDS_STAGE_FOLDER": {
+													"value": "@if(equals(pipeline().parameters.DEST_TYPE, 'ODS'), pipeline().parameters.ODS_LOC, pipeline().parameters.DEST_TBL)",
+													"type": "Expression"
+												}
+											}
+										}
+									]
+								},
+								{
+									"name": "ARCHIVE HDFS FILES_FRM_SECONDARY",
+									"description": "as its mv ie copy and delete from FTP to RDS. if 5 files and 4 copied 1 failed at src you would have only 1 file left. To Rerun Support need to copy from archive for the latest run",
+									"type": "ExecutePipeline",
+									"dependsOn": [
+										{
+											"activity": "Set V_SRC_COUNT_DERIVED_from HA",
+											"dependencyConditions": [
+												"Succeeded"
+											]
+										}
+									],
+									"userProperties": [],
+									"typeProperties": {
+										"pipeline": {
+											"referenceName": "PL_ARCHIVER",
+											"type": "PipelineReference"
+										},
+										"waitOnCompletion": true,
+										"parameters": {
+											"RDS_STAGE_LOC": {
+												"value": "@concat(variables('V_RDS_STAGE_LOC'), '/', pipeline().parameters.SRC_TYPE, '-STAGE')",
+												"type": "Expression"
+											},
+											"DEST_TBL": {
+												"value": "@pipeline().parameters.DEST_TBL",
+												"type": "Expression"
+											},
+											"SRC_TYPE": {
+												"value": "@pipeline().parameters.SRC_TYPE",
+												"type": "Expression"
+											}
+										}
+									}
+								},
+								{
+									"name": "Set IS_ERR_TO_RAISE to Y",
+									"description": "This is to check if the failed flow is not recovered",
+									"type": "SetVariable",
+									"dependsOn": [
+										{
+											"activity": "HDFS_PULL_FRM_PRIMARY_WEBHDFS",
+											"dependencyConditions": [
+												"Failed"
+											]
+										}
+									],
+									"userProperties": [],
+									"typeProperties": {
+										"variableName": "V_IS_ERR_TO_RAISE",
+										"value": "Y"
+									}
+								},
+								{
+									"name": "Set IS_ERR_TO_RAISE to N",
+									"description": "Yay !! Recovery flow is successful  !!",
+									"type": "SetVariable",
+									"dependsOn": [
+										{
+											"activity": "ARCHIVE HDFS FILES_FRM_SECONDARY",
+											"dependencyConditions": [
+												"Succeeded"
+											]
+										}
+									],
+									"userProperties": [],
+									"typeProperties": {
+										"variableName": "V_IS_ERR_TO_RAISE",
+										"value": "N"
+									}
+								},
+								{
+									"name": "Set V_SRC_COUNT_DERIVED_from HA",
+									"description": "For HDFS, its not the row count but just the size of data written !!",
+									"type": "SetVariable",
+									"dependsOn": [
+										{
+											"activity": "HDFS_PULL_FRM_SECONDARY_WEBHDFS",
+											"dependencyConditions": [
+												"Succeeded"
+											]
+										}
+									],
+									"userProperties": [],
+									"typeProperties": {
+										"variableName": "V_SRC_COUNT_DERIVED",
+										"value": {
+											"value": "@string(activity('HDFS_PULL_FRM_SECONDARY_WEBHDFS').output.dataWritten)",
+											"type": "Expression"
+										}
+									}
+								},
+								{
+									"name": "Execute PL_SRC_COUNT_ZERO_CHECK",
+									"type": "ExecutePipeline",
+									"dependsOn": [
+										{
+											"activity": "ARCHIVE HDFS FILES",
+											"dependencyConditions": [
+												"Succeeded"
+											]
+										}
+									],
+									"userProperties": [],
+									"typeProperties": {
+										"pipeline": {
+											"referenceName": "PL_SRC_COUNT_ZERO_CHECK",
+											"type": "PipelineReference"
+										},
+										"waitOnCompletion": true,
+										"parameters": {
+											"SRC_COUNT_DERIVED": {
+												"value": "@variables('V_SRC_COUNT_DERIVED')",
+												"type": "Expression"
+											}
+										}
+									}
+								},
+								{
+									"name": "Execute PL_SRC_COUNT_ZERO_CHECK_1",
+									"type": "ExecutePipeline",
+									"dependsOn": [
+										{
+											"activity": "Set IS_ERR_TO_RAISE to N",
+											"dependencyConditions": [
+												"Succeeded"
+											]
+										}
+									],
+									"userProperties": [],
+									"typeProperties": {
+										"pipeline": {
+											"referenceName": "PL_SRC_COUNT_ZERO_CHECK",
+											"type": "PipelineReference"
+										},
+										"waitOnCompletion": true,
+										"parameters": {
+											"SRC_COUNT_DERIVED": {
+												"value": "@variables('V_SRC_COUNT_DERIVED')",
+												"type": "Expression"
+											}
+										}
+									}
+								}
+							]
+						},
+						{
+							"value": "TIMESTAMP",
+							"activities": [
+								{
+									"name": "Execute PL_HDFS_RETRIEVAL TIMESTAMP",
+									"type": "ExecutePipeline",
+									"dependsOn": [],
+									"userProperties": [],
+									"typeProperties": {
+										"pipeline": {
+											"referenceName": "PL_HDFS_RETRIEVAL",
+											"type": "PipelineReference"
+										},
+										"waitOnCompletion": true,
+										"parameters": {
+											"DELTA_CURR_MAX_VALUE": {
+												"value": "@pipeline().parameters.DELTA_CURR_MAX_VALUE",
+												"type": "Expression"
+											},
+											"SRC_TBL_FILE_PATH": {
+												"value": "@pipeline().parameters.SRC_TBL_FILE_PATH",
+												"type": "Expression"
+											},
+											"HDFS_PARTITION_COL_FORMAT": {
+												"value": "@pipeline().parameters.HDFS_PARTITION_COL_FORMAT",
+												"type": "Expression"
+											},
+											"PARTITION_THRESHOLD": {
+												"value": "@pipeline().parameters.PARTITION_THRESHOLD",
+												"type": "Expression"
+											},
+											"PARTITION_THRESHOLD_TYPE": {
+												"value": "@pipeline().parameters.PARTITION_THRESHOLD_TYPE",
+												"type": "Expression"
+											},
+											"ODS_LOC": {
+												"value": "@pipeline().parameters.ODS_LOC",
+												"type": "Expression"
+											},
+											"WINDOW_START_TIME_UTC": {
+												"value": "@pipeline().parameters.WINDOW_START_TIME_UTC",
+												"type": "Expression"
+											},
+											"WINDOW_END_TIME_UTC": {
+												"value": "@pipeline().parameters.WINDOW_END_TIME_UTC",
+												"type": "Expression"
+											},
+											"DEST_TYPE": {
+												"value": "@pipeline().parameters.DEST_TYPE",
+												"type": "Expression"
+											},
+											"DEST_TBL": {
+												"value": "@pipeline().parameters.DEST_TBL",
+												"type": "Expression"
+											},
+											"SRC_TYPE": {
+												"value": "@pipeline().parameters.SRC_TYPE",
+												"type": "Expression"
+											},
+											"SRC_DELTA_COL": {
+												"value": "@pipeline().parameters.SRC_DELTA_COL",
+												"type": "Expression"
+											}
+										}
+									}
+								}
+							]
+						}
+					]
+				}
+			},
+			{
+				"name": "Check for any is_err_to_raise",
+				"description": "Checking if any err has occured in the copy to RDS flow",
+				"type": "IfCondition",
+				"dependsOn": [
+					{
+						"activity": "Switch Based on PARTITION_THRESHOLD_TYPE",
+						"dependencyConditions": [
+							"Completed"
+						]
+					}
+				],
+				"userProperties": [],
+				"typeProperties": {
+					"expression": {
+						"value": "@equals(variables('V_IS_ERR_TO_RAISE'), 'Y')",
+						"type": "Expression"
+					},
+					"ifTrueActivities": [
+						{
+							"name": "set output_message for rds_stage copy failure",
+							"description": "This is more like a err or info message to look upon",
+							"type": "SetVariable",
+							"dependsOn": [],
+							"userProperties": [],
+							"typeProperties": {
+								"variableName": "V_OUTPUT_MESSAGE",
+								"value": "Either No File in staging to ingest to blob or src rec count is 0. Please check"
+							}
+						},
+						{
+							"name": "Raise Exception in RDS_STAGE copy",
+							"description": "Please check the RDS_location and archive the files manually !!",
+							"type": "AppendVariable",
+							"dependsOn": [
+								{
+									"activity": "set output_message for rds_stage copy failure",
+									"dependencyConditions": [
+										"Succeeded"
+									]
+								}
+							],
+							"userProperties": [],
+							"typeProperties": {
+								"variableName": "V_RAISE_EXCEPTION",
+								"value": {
+									"value": "@int(variables('V_OUTPUT_MESSAGE'))",
+									"type": "Expression"
+								}
+							}
+						}
+					]
+				}
+			}
+		],
+		"parameters": {
+			"DELTA_CURR_MAX_VALUE": {
+				"type": "string",
+				"defaultValue": "NULL"
+			},
+			"SRC_TBL_FILE_PATH": {
+				"type": "string",
+				"defaultValue": "NULL"
+			},
+			"SRC_DELTA_COL": {
+				"type": "string",
+				"defaultValue": "NULL"
+			},
+			"HDFS_PARTITION_COL_FORMAT": {
+				"type": "string",
+				"defaultValue": "NULL"
+			},
+			"PARTITION_THRESHOLD": {
+				"type": "string",
+				"defaultValue": "NULL"
+			},
+			"PARTITION_THRESHOLD_TYPE": {
+				"type": "string",
+				"defaultValue": "NULL"
+			},
+			"ODS_LOC": {
+				"type": "string",
+				"defaultValue": "NULL"
+			},
+			"WINDOW_START_TIME_UTC": {
+				"type": "string",
+				"defaultValue": "NULL"
+			},
+			"WINDOW_END_TIME_UTC": {
+				"type": "string",
+				"defaultValue": "NULL"
+			},
+			"DEST_TYPE": {
+				"type": "string",
+				"defaultValue": "NULL"
+			},
+			"DEST_TBL": {
+				"type": "string",
+				"defaultValue": "NULL"
+			},
+			"SRC_TYPE": {
+				"type": "string",
+				"defaultValue": "NULL"
+			}
+		},
+		"variables": {
+			"V_START_PARTITION": {
+				"type": "String",
+				"defaultValue": "NULL"
+			},
+			"V_TEMP_START_PARTITION": {
+				"type": "String",
+				"defaultValue": "NULL"
+			},
+			"V_END_PARTITION": {
+				"type": "String",
+				"defaultValue": "NULL"
+			},
+			"V_STOP_LOOP": {
+				"type": "String",
+				"defaultValue": "false"
+			},
+			"V_IS_ERR_TO_RAISE": {
+				"type": "String",
+				"defaultValue": "NULL"
+			},
+			"V_RDS_STAGE_LOC": {
+				"type": "String",
+				"defaultValue": "rogers-eda-raw-prd-sensitive-storage/networth/nw-rds-stage"
+			},
+			"V_SRC_COUNT_DERIVED": {
+				"type": "String",
+				"defaultValue": "0"
+			},
+			"V_ODS_LOC": {
+				"type": "String",
+				"defaultValue": "rogers-eda-raw-prd-sensitive-storage/networth/nw-ods"
+			},
+			"V_OUTPUT_MESSAGE": {
+				"type": "String",
+				"defaultValue": "NULL"
+			},
+			"V_RAISE_EXCEPTION": {
+				"type": "Array",
+				"defaultValue": [
+					"NULL"
+				]
+			}
+		},
+		"folder": {
+			"name": "Data Ingestion FrmWrk"
+		},
+		"annotations": [],
+		"lastPublishTime": "2022-03-09T16:28:01Z"
+	},
+	"type": "Microsoft.DataFactory/factories/pipelines"
+}

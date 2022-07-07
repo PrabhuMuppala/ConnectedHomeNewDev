@@ -1,0 +1,24 @@
+{
+	"name": "ls_databricks_networth_raw",
+	"type": "Microsoft.DataFactory/factories/linkedservices",
+	"properties": {
+		"annotations": [],
+		"type": "AzureDatabricks",
+		"typeProperties": {
+			"domain": "https://adb-1348407712854365.5.azuredatabricks.net",
+			"newClusterNodeType": "Standard_DS3_v2",
+			"newClusterNumOfWorker": "1",
+			"newClusterSparkConf": {
+				"spark.hadoop.mapreduce.fileoutputcommitter.cleanup.skipped": "false",
+				"spark.yarn.preserve.staging.files": "false"
+			},
+			"newClusterVersion": "8.2.x-scala2.12",
+			"newClusterInitScripts": [],
+			"encryptedCredential": "eyJDcmVkZW50aWFsSWQiOiI5YWY4YWNmMS0wMGY2LTQyOGYtYTA1Yy1kNTRiMjAzY2QwNzciLCJWZXJzaW9uIjoiMi4wIiwiQ2xhc3NUeXBlIjoiTWljcm9zb2Z0LkRhdGFQcm94eS5Db3JlLkludGVyU2VydmljZURhdGFDb250cmFjdC5DcmVkZW50aWFsU1UwNkNZMTQifQ=="
+		},
+		"connectVia": {
+			"referenceName": "networthir",
+			"type": "IntegrationRuntimeReference"
+		}
+	}
+}

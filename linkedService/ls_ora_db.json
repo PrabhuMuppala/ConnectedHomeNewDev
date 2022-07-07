@@ -1,0 +1,33 @@
+{
+	"name": "ls_ora_db",
+	"type": "Microsoft.DataFactory/factories/linkedservices",
+	"properties": {
+		"description": "Parameterised connection to onprem oracle db.",
+		"parameters": {
+			"hostNm": {
+				"type": "string"
+			},
+			"port": {
+				"type": "string"
+			},
+			"UserNm": {
+				"type": "string"
+			},
+			"serviceNm": {
+				"type": "string"
+			},
+			"pwd": {
+				"type": "string"
+			}
+		},
+		"annotations": [],
+		"type": "Oracle",
+		"typeProperties": {
+			"connectionString": "host=@{linkedService().hostNm};port=@{linkedService().port};serviceName=@{linkedService().serviceNm};user id=@{linkedService().UserNm};Password=@{linkedService().pwd}"
+		},
+		"connectVia": {
+			"referenceName": "networthir",
+			"type": "IntegrationRuntimeReference"
+		}
+	}
+}

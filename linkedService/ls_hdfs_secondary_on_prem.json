@@ -1,0 +1,22 @@
+{
+	"name": "ls_hdfs_secondary_on_prem",
+	"type": "Microsoft.DataFactory/factories/linkedservices",
+	"properties": {
+		"description": "Linked Service for connecting to onprem HDFS cluster using secondarywebHDFS API. Needs Self hosted IR with KDC setup ",
+		"annotations": [],
+		"type": "Hdfs",
+		"typeProperties": {
+			"url": "http://elxap251.rogers.com:50070/webhdfs/v1/",
+			"authenticationType": "Windows",
+			"userName": "serv_5g_maz_hdp_p@RCI.ROGERS.CA",
+			"password": {
+				"type": "AzureKeyVaultSecret",
+				"store": {
+					"referenceName": "ls_5g_data_enablment_az_kv",
+					"type": "LinkedServiceReference"
+				},
+				"secretName": "secret-5g-data-enablement-hdfs-service-id-pwd"
+			}
+		}
+	}
+}
