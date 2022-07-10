@@ -17,7 +17,8 @@
 				"typeProperties": {
 					"notebookPath": "/app/dmt/network/networth/connected-home/NTBK_DIM_NODE_DETAIL_PORT",
 					"baseParameters": {
-						"targetCuratedLocation": "/mnt/rogers-eda-derived-prd-sensitive-storage/networth/connected_home/connectedhome/"
+						"targetCuratedLocation": "/mnt/rogers-eda-derived-prd-sensitive-storage/networth/connected_home/connectedhome/",
+						"sourceCuratedLocation": "/mnt/rogers-eda-curated-dev-sensitive-storage/hive/"
 					}
 				},
 				"linkedServiceName": {
