@@ -1,9 +1,9 @@
 {
-	"name": "CH_DIM_NODE_PORT",
+	"name": "PL_CH_DIM_NODE_PORT",
 	"properties": {
 		"activities": [
 			{
-				"name": "Notebook1",
+				"name": "chdimnodedataprocess",
 				"type": "DatabricksNotebook",
 				"dependsOn": [],
 				"policy": {
