@@ -1,0 +1,180 @@
+{
+	"$schema": "https://schema.management.azure.com/schemas/2015-01-01/deploymentParameters.json#",
+	"contentVersion": "1.0.0.0",
+	"parameters": {
+		"factoryName": {
+			"value": "mazcacnpenworthadf01"
+		},
+		"AzureDatabricksDeltaLake1_accessToken": {
+			"value": ""
+		},
+		"AzureDatacopyls_accountKey": {
+			"value": ""
+		},
+		"CNE_Azure_Account_connectionString": {
+			"value": ""
+		},
+		"Hdfs1_self_password": {
+			"value": ""
+		},
+		"Link_CNE_Storage_Account_accountKey": {
+			"value": ""
+		},
+		"Oracle_prod_test_connectionString": {
+			"value": ""
+		},
+		"UserCredentials_A_password": {
+			"value": ""
+		},
+		"UserLevelAccess-S_password": {
+			"value": ""
+		},
+		"edl_storage_account_connectionString": {
+			"value": ""
+		},
+		"ls_4_gen2_accountKey": {
+			"value": ""
+		},
+		"ls_4_gen2_deletion_accountKey": {
+			"value": ""
+		},
+		"ls_az_sql_dar_db_connectionString": {
+			"value": ""
+		},
+		"ls_az_stg_acc_connectionString": {
+			"value": ""
+		},
+		"ls_az_storage_table_connectionString": {
+			"value": ""
+		},
+		"ls_bdw_oracle_connectionString": {
+			"value": ""
+		},
+		"ls_bdw_oracle_qa_connectionString": {
+			"value": ""
+		},
+		"ls_databricks_networth_raw_accessToken": {
+			"value": ""
+		},
+		"ls_ora_db_connectionString": {
+			"value": ""
+		},
+		"ls_oracle_connectionString": {
+			"value": ""
+		},
+		"ls_sqlmi_eda_edl_ctl_fw_db_connectionString": {
+			"value": ""
+		},
+		"AzureDatacopyls_properties_typeProperties_url": {
+			"value": "https://mazcacdmtnpesybaseiqstg1.dfs.core.windows.net"
+		},
+		"AzureKeyVault1_properties_typeProperties_baseUrl": {
+			"value": "https://ccnpedmtnetworthkv01.vault.azure.net/"
+		},
+		"Dev_Networth_Hadoop_properties_typeProperties_url": {
+			"value": "http://ehdpdd101.dev.dmt.rogers.com:50070/webhdfs/v1/"
+		},
+		"Dev_Networth_Hadoop_properties_typeProperties_userName": {
+			"value": "serv_netwr_maz_hdp_d@RCI.ROGERS.CA"
+		},
+		"Hdfs1_self_properties_typeProperties_url": {
+			"value": "http://ehdpdd109.dev.dmt.rogers.com:50070/webhdfs/v1/"
+		},
+		"Hdfs1_self_properties_typeProperties_userName": {
+			"value": "arun.konda@RCI.ROGERS.CA"
+		},
+		"Link_CNE_Storage_Account_properties_typeProperties_url": {
+			"value": "https://mazcacdmtnpesybaseiqstg1.dfs.core.windows.net"
+		},
+		"Networth_Key_Vault_properties_typeProperties_baseUrl": {
+			"value": "https://ccnpedmtnetworthkv01.vault.azure.net/"
+		},
+		"UserCredentials_A_properties_typeProperties_url": {
+			"value": "http://ehdpdd101.dev.dmt.rogers.com:50070/webhdfs/v1/"
+		},
+		"UserCredentials_A_properties_typeProperties_userName": {
+			"value": "arun.konda@RCI.ROGERS.CA"
+		},
+		"UserLevelAccess-S_properties_typeProperties_url": {
+			"value": "http://ehdpdd109.dev.dmt.rogers.com:50070/webhdfs/v1/"
+		},
+		"UserLevelAccess-S_properties_typeProperties_userName": {
+			"value": "srinivasrao.mullapud@RCI.ROGERS.CA"
+		},
+		"dev_hadoop_connectivity_properties_typeProperties_url": {
+			"value": "http://ehdpdd109.dev.dmt.rogers.com:50070/webhdfs/v1/"
+		},
+		"dev_hadoop_connectivity_properties_typeProperties_userName": {
+			"value": "serv_netwr_maz_hdp_d@RCI.ROGERS.CA"
+		},
+		"ls_4_gen2_properties_typeProperties_url": {
+			"value": "https://mazcacnpedmtssdls.dfs.core.windows.net"
+		},
+		"ls_4_gen2_deletion_properties_typeProperties_url": {
+			"value": "https://mazcacnpedmtssdls.dfs.core.windows.net"
+		},
+		"ls_5g_data_enablment_az_kv_properties_typeProperties_baseUrl": {
+			"value": "https://dmtnpesybasekeyvault.vault.azure.net/"
+		},
+		"ls_amazon_awsp3_properties_typeProperties_host": {
+			"value": "s-db5221ea609b4fe1b.server.transfer.us-east-1.amazonaws.com"
+		},
+		"ls_amazon_awsp3_properties_typeProperties_userName": {
+			"value": "rogers"
+		},
+		"ls_cradlepoint_rest_api_properties_typeProperties_url": {
+			"value": "https://www.cradlepointecm.com/api/v2"
+		},
+		"ls_ftp_ntw_server_properties_typeProperties_host": {
+			"value": "prda5geniq001.rci.rogers.ca"
+		},
+		"ls_ftp_ntw_server_properties_typeProperties_userName": {
+			"value": "nw-ftp-adf-user"
+		},
+		"ls_ftp_ntw_server_new_properties_typeProperties_host": {
+			"value": "dmtsybasvmap001.rci.rogers.ca"
+		},
+		"ls_ftp_ntw_server_new_properties_typeProperties_userName": {
+			"value": "nw-ftp-adf-user"
+		},
+		"ls_hdfs_primary_on_prem_properties_typeProperties_url": {
+			"value": "http://ehdpdd109.dev.dmt.rogers.com:50070/webhdfs/v1/"
+		},
+		"ls_hdfs_primary_on_prem_properties_typeProperties_userName": {
+			"value": "serv_netwr_maz_hdp_d@RCI.ROGERS.CA"
+		},
+		"ls_hdfs_secondary_on_prem_properties_typeProperties_url": {
+			"value": "http://elxap251.rogers.com:50070/webhdfs/v1/"
+		},
+		"ls_hdfs_secondary_on_prem_properties_typeProperties_userName": {
+			"value": "serv_5g_maz_hdp_p@RCI.ROGERS.CA"
+		},
+		"ls_onprem_vm_file_system_properties_typeProperties_host": {
+			"value": "\\\\mdcnascifs.rci.rogers.ca\\RPA"
+		},
+		"ls_onprem_vm_file_system_properties_typeProperties_userId": {
+			"value": "SERV_SMKE_FILE_MAZ_P@RCI.ROGERS.CA"
+		},
+		"ls_sas_sftp_server_properties_typeProperties_host": {
+			"value": "mdcdmtsasg01.rogers.com"
+		},
+		"ls_sas_sftp_server_properties_typeProperties_userName": {
+			"value": "serv_smoke_sas_maz_p"
+		},
+		"ls_smoke_az_kv_properties_typeProperties_baseUrl": {
+			"value": "https://dmtnpesmokekeyvault.vault.azure.net/"
+		},
+		"ookla_http_server_linked_service_properties_typeProperties_url": {
+			"value": "https://extracts.ookla.com/files/"
+		},
+		"ookla_http_server_linked_service_properties_typeProperties_userName": {
+			"value": "rogers_co"
+		},
+		"containerUri": {
+			"value": ""
+		},
+		"containerSasToken": {
+			"value": ""
+		}
+	}
+}

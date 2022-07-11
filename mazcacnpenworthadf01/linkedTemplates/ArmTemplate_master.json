@@ -1,0 +1,487 @@
+{
+	"$schema": "http://schema.management.azure.com/schemas/2015-01-01/deploymentTemplate.json#",
+	"contentVersion": "1.0.0.0",
+	"parameters": {
+		"factoryName": {
+			"type": "string",
+			"metadata": "Data Factory name",
+			"defaultValue": "mazcacnpenworthadf01"
+		},
+		"AzureDatabricksDeltaLake1_accessToken": {
+			"type": "secureString",
+			"metadata": "Secure string for 'accessToken' of 'AzureDatabricksDeltaLake1'"
+		},
+		"AzureDatacopyls_accountKey": {
+			"type": "secureString",
+			"metadata": "Secure string for 'accountKey' of 'AzureDatacopyls'"
+		},
+		"CNE_Azure_Account_connectionString": {
+			"type": "secureString",
+			"metadata": "Secure string for 'connectionString' of 'CNE_Azure_Account'"
+		},
+		"Hdfs1_self_password": {
+			"type": "secureString",
+			"metadata": "Secure string for 'password' of 'Hdfs1_self'"
+		},
+		"Link_CNE_Storage_Account_accountKey": {
+			"type": "secureString",
+			"metadata": "Secure string for 'accountKey' of 'Link_CNE_Storage_Account'"
+		},
+		"Oracle_prod_test_connectionString": {
+			"type": "secureString",
+			"metadata": "Secure string for 'connectionString' of 'Oracle_prod_test'"
+		},
+		"UserCredentials_A_password": {
+			"type": "secureString",
+			"metadata": "Secure string for 'password' of 'UserCredentials_A'"
+		},
+		"UserLevelAccess-S_password": {
+			"type": "secureString",
+			"metadata": "Secure string for 'password' of 'UserLevelAccess-S'"
+		},
+		"edl_storage_account_connectionString": {
+			"type": "secureString",
+			"metadata": "Secure string for 'connectionString' of 'edl_storage_account'"
+		},
+		"ls_4_gen2_accountKey": {
+			"type": "secureString",
+			"metadata": "Secure string for 'accountKey' of 'ls_4_gen2'"
+		},
+		"ls_4_gen2_deletion_accountKey": {
+			"type": "secureString",
+			"metadata": "Secure string for 'accountKey' of 'ls_4_gen2_deletion'"
+		},
+		"ls_az_sql_dar_db_connectionString": {
+			"type": "secureString",
+			"metadata": "Secure string for 'connectionString' of 'ls_az_sql_dar_db'"
+		},
+		"ls_az_stg_acc_connectionString": {
+			"type": "secureString",
+			"metadata": "Secure string for 'connectionString' of 'ls_az_stg_acc'"
+		},
+		"ls_az_storage_table_connectionString": {
+			"type": "secureString",
+			"metadata": "Secure string for 'connectionString' of 'ls_az_storage_table'"
+		},
+		"ls_bdw_oracle_connectionString": {
+			"type": "secureString",
+			"metadata": "Secure string for 'connectionString' of 'ls_bdw_oracle'"
+		},
+		"ls_bdw_oracle_qa_connectionString": {
+			"type": "secureString",
+			"metadata": "Secure string for 'connectionString' of 'ls_bdw_oracle_qa'"
+		},
+		"ls_databricks_networth_raw_accessToken": {
+			"type": "secureString",
+			"metadata": "Secure string for 'accessToken' of 'ls_databricks_networth_raw'"
+		},
+		"ls_ora_db_connectionString": {
+			"type": "secureString",
+			"metadata": "Secure string for 'connectionString' of 'ls_ora_db'"
+		},
+		"ls_oracle_connectionString": {
+			"type": "secureString",
+			"metadata": "Secure string for 'connectionString' of 'ls_oracle'"
+		},
+		"ls_sqlmi_eda_edl_ctl_fw_db_connectionString": {
+			"type": "secureString",
+			"metadata": "Secure string for 'connectionString' of 'ls_sqlmi_eda_edl_ctl_fw_db'"
+		},
+		"AzureDatacopyls_properties_typeProperties_url": {
+			"type": "string",
+			"defaultValue": "https://mazcacdmtnpesybaseiqstg1.dfs.core.windows.net"
+		},
+		"AzureKeyVault1_properties_typeProperties_baseUrl": {
+			"type": "string",
+			"defaultValue": "https://ccnpedmtnetworthkv01.vault.azure.net/"
+		},
+		"Dev_Networth_Hadoop_properties_typeProperties_url": {
+			"type": "string",
+			"defaultValue": "http://ehdpdd101.dev.dmt.rogers.com:50070/webhdfs/v1/"
+		},
+		"Dev_Networth_Hadoop_properties_typeProperties_userName": {
+			"type": "string",
+			"defaultValue": "serv_netwr_maz_hdp_d@RCI.ROGERS.CA"
+		},
+		"Hdfs1_self_properties_typeProperties_url": {
+			"type": "string",
+			"defaultValue": "http://ehdpdd109.dev.dmt.rogers.com:50070/webhdfs/v1/"
+		},
+		"Hdfs1_self_properties_typeProperties_userName": {
+			"type": "string",
+			"defaultValue": "arun.konda@RCI.ROGERS.CA"
+		},
+		"Link_CNE_Storage_Account_properties_typeProperties_url": {
+			"type": "string",
+			"defaultValue": "https://mazcacdmtnpesybaseiqstg1.dfs.core.windows.net"
+		},
+		"Networth_Key_Vault_properties_typeProperties_baseUrl": {
+			"type": "string",
+			"defaultValue": "https://ccnpedmtnetworthkv01.vault.azure.net/"
+		},
+		"UserCredentials_A_properties_typeProperties_url": {
+			"type": "string",
+			"defaultValue": "http://ehdpdd101.dev.dmt.rogers.com:50070/webhdfs/v1/"
+		},
+		"UserCredentials_A_properties_typeProperties_userName": {
+			"type": "string",
+			"defaultValue": "arun.konda@RCI.ROGERS.CA"
+		},
+		"UserLevelAccess-S_properties_typeProperties_url": {
+			"type": "string",
+			"defaultValue": "http://ehdpdd109.dev.dmt.rogers.com:50070/webhdfs/v1/"
+		},
+		"UserLevelAccess-S_properties_typeProperties_userName": {
+			"type": "string",
+			"defaultValue": "srinivasrao.mullapud@RCI.ROGERS.CA"
+		},
+		"dev_hadoop_connectivity_properties_typeProperties_url": {
+			"type": "string",
+			"defaultValue": "http://ehdpdd109.dev.dmt.rogers.com:50070/webhdfs/v1/"
+		},
+		"dev_hadoop_connectivity_properties_typeProperties_userName": {
+			"type": "string",
+			"defaultValue": "serv_netwr_maz_hdp_d@RCI.ROGERS.CA"
+		},
+		"ls_4_gen2_properties_typeProperties_url": {
+			"type": "string",
+			"defaultValue": "https://mazcacnpedmtssdls.dfs.core.windows.net"
+		},
+		"ls_4_gen2_deletion_properties_typeProperties_url": {
+			"type": "string",
+			"defaultValue": "https://mazcacnpedmtssdls.dfs.core.windows.net"
+		},
+		"ls_5g_data_enablment_az_kv_properties_typeProperties_baseUrl": {
+			"type": "string",
+			"defaultValue": "https://dmtnpesybasekeyvault.vault.azure.net/"
+		},
+		"ls_amazon_awsp3_properties_typeProperties_host": {
+			"type": "string",
+			"defaultValue": "s-db5221ea609b4fe1b.server.transfer.us-east-1.amazonaws.com"
+		},
+		"ls_amazon_awsp3_properties_typeProperties_userName": {
+			"type": "string",
+			"defaultValue": "rogers"
+		},
+		"ls_cradlepoint_rest_api_properties_typeProperties_url": {
+			"type": "string",
+			"defaultValue": "https://www.cradlepointecm.com/api/v2"
+		},
+		"ls_ftp_ntw_server_properties_typeProperties_host": {
+			"type": "string",
+			"defaultValue": "prda5geniq001.rci.rogers.ca"
+		},
+		"ls_ftp_ntw_server_properties_typeProperties_userName": {
+			"type": "string",
+			"defaultValue": "nw-ftp-adf-user"
+		},
+		"ls_ftp_ntw_server_new_properties_typeProperties_host": {
+			"type": "string",
+			"defaultValue": "dmtsybasvmap001.rci.rogers.ca"
+		},
+		"ls_ftp_ntw_server_new_properties_typeProperties_userName": {
+			"type": "string",
+			"defaultValue": "nw-ftp-adf-user"
+		},
+		"ls_hdfs_primary_on_prem_properties_typeProperties_url": {
+			"type": "string",
+			"defaultValue": "http://ehdpdd109.dev.dmt.rogers.com:50070/webhdfs/v1/"
+		},
+		"ls_hdfs_primary_on_prem_properties_typeProperties_userName": {
+			"type": "string",
+			"defaultValue": "serv_netwr_maz_hdp_d@RCI.ROGERS.CA"
+		},
+		"ls_hdfs_secondary_on_prem_properties_typeProperties_url": {
+			"type": "string",
+			"defaultValue": "http://elxap251.rogers.com:50070/webhdfs/v1/"
+		},
+		"ls_hdfs_secondary_on_prem_properties_typeProperties_userName": {
+			"type": "string",
+			"defaultValue": "serv_5g_maz_hdp_p@RCI.ROGERS.CA"
+		},
+		"ls_onprem_vm_file_system_properties_typeProperties_host": {
+			"type": "string",
+			"defaultValue": "\\\\mdcnascifs.rci.rogers.ca\\RPA"
+		},
+		"ls_onprem_vm_file_system_properties_typeProperties_userId": {
+			"type": "string",
+			"defaultValue": "SERV_SMKE_FILE_MAZ_P@RCI.ROGERS.CA"
+		},
+		"ls_sas_sftp_server_properties_typeProperties_host": {
+			"type": "string",
+			"defaultValue": "mdcdmtsasg01.rogers.com"
+		},
+		"ls_sas_sftp_server_properties_typeProperties_userName": {
+			"type": "string",
+			"defaultValue": "serv_smoke_sas_maz_p"
+		},
+		"ls_smoke_az_kv_properties_typeProperties_baseUrl": {
+			"type": "string",
+			"defaultValue": "https://dmtnpesmokekeyvault.vault.azure.net/"
+		},
+		"ookla_http_server_linked_service_properties_typeProperties_url": {
+			"type": "string",
+			"defaultValue": "https://extracts.ookla.com/files/"
+		},
+		"ookla_http_server_linked_service_properties_typeProperties_userName": {
+			"type": "string",
+			"defaultValue": "rogers_co"
+		},
+		"containerUri": {
+			"type": "string",
+			"metadata": "URI to storage account containing linked ARM templates"
+		},
+		"containerSasToken": {
+			"type": "string",
+			"metadata": "Sas token to storage account containing linked ARM templates"
+		}
+	},
+	"variables": {
+		"factoryId": "[concat('Microsoft.DataFactory/factories/', parameters('factoryName'))]"
+	},
+	"resources": [
+		{
+			"name": "mazcacnpenworthadf01_ArmTemplate_0",
+			"type": "Microsoft.Resources/deployments",
+			"apiVersion": "2018-02-01",
+			"properties": {
+				"mode": "incremental",
+				"templateLink": {
+					"uri": "[concat(parameters('containerUri'), '/ArmTemplate_0.json', parameters('containerSasToken'))]",
+					"contentVersion": "1.0.0.0"
+				},
+				"parameters": {
+					"factoryName": {
+						"value": "[parameters('factoryName')]"
+					},
+					"AzureDatacopyls_accountKey": {
+						"value": "[parameters('AzureDatacopyls_accountKey')]"
+					},
+					"ls_az_sql_dar_db_connectionString": {
+						"value": "[parameters('ls_az_sql_dar_db_connectionString')]"
+					},
+					"AzureDatabricksDeltaLake1_accessToken": {
+						"value": "[parameters('AzureDatabricksDeltaLake1_accessToken')]"
+					},
+					"CNE_Azure_Account_connectionString": {
+						"value": "[parameters('CNE_Azure_Account_connectionString')]"
+					},
+					"Hdfs1_self_password": {
+						"value": "[parameters('Hdfs1_self_password')]"
+					},
+					"Link_CNE_Storage_Account_accountKey": {
+						"value": "[parameters('Link_CNE_Storage_Account_accountKey')]"
+					},
+					"Oracle_prod_test_connectionString": {
+						"value": "[parameters('Oracle_prod_test_connectionString')]"
+					},
+					"UserCredentials_A_password": {
+						"value": "[parameters('UserCredentials_A_password')]"
+					},
+					"UserLevelAccess-S_password": {
+						"value": "[parameters('UserLevelAccess-S_password')]"
+					},
+					"AzureDatacopyls_properties_typeProperties_url": {
+						"value": "[parameters('AzureDatacopyls_properties_typeProperties_url')]"
+					},
+					"AzureKeyVault1_properties_typeProperties_baseUrl": {
+						"value": "[parameters('AzureKeyVault1_properties_typeProperties_baseUrl')]"
+					},
+					"Networth_Key_Vault_properties_typeProperties_baseUrl": {
+						"value": "[parameters('Networth_Key_Vault_properties_typeProperties_baseUrl')]"
+					},
+					"ls_5g_data_enablment_az_kv_properties_typeProperties_baseUrl": {
+						"value": "[parameters('ls_5g_data_enablment_az_kv_properties_typeProperties_baseUrl')]"
+					},
+					"ls_cradlepoint_rest_api_properties_typeProperties_url": {
+						"value": "[parameters('ls_cradlepoint_rest_api_properties_typeProperties_url')]"
+					},
+					"ls_smoke_az_kv_properties_typeProperties_baseUrl": {
+						"value": "[parameters('ls_smoke_az_kv_properties_typeProperties_baseUrl')]"
+					},
+					"Dev_Networth_Hadoop_properties_typeProperties_url": {
+						"value": "[parameters('Dev_Networth_Hadoop_properties_typeProperties_url')]"
+					},
+					"Dev_Networth_Hadoop_properties_typeProperties_userName": {
+						"value": "[parameters('Dev_Networth_Hadoop_properties_typeProperties_userName')]"
+					},
+					"Hdfs1_self_properties_typeProperties_url": {
+						"value": "[parameters('Hdfs1_self_properties_typeProperties_url')]"
+					},
+					"Hdfs1_self_properties_typeProperties_userName": {
+						"value": "[parameters('Hdfs1_self_properties_typeProperties_userName')]"
+					},
+					"Link_CNE_Storage_Account_properties_typeProperties_url": {
+						"value": "[parameters('Link_CNE_Storage_Account_properties_typeProperties_url')]"
+					},
+					"UserCredentials_A_properties_typeProperties_url": {
+						"value": "[parameters('UserCredentials_A_properties_typeProperties_url')]"
+					},
+					"UserCredentials_A_properties_typeProperties_userName": {
+						"value": "[parameters('UserCredentials_A_properties_typeProperties_userName')]"
+					},
+					"UserLevelAccess-S_properties_typeProperties_url": {
+						"value": "[parameters('UserLevelAccess-S_properties_typeProperties_url')]"
+					},
+					"UserLevelAccess-S_properties_typeProperties_userName": {
+						"value": "[parameters('UserLevelAccess-S_properties_typeProperties_userName')]"
+					},
+					"dev_hadoop_connectivity_properties_typeProperties_url": {
+						"value": "[parameters('dev_hadoop_connectivity_properties_typeProperties_url')]"
+					},
+					"dev_hadoop_connectivity_properties_typeProperties_userName": {
+						"value": "[parameters('dev_hadoop_connectivity_properties_typeProperties_userName')]"
+					}
+				}
+			},
+			"dependsOn": []
+		},
+		{
+			"name": "mazcacnpenworthadf01_ArmTemplate_1",
+			"type": "Microsoft.Resources/deployments",
+			"apiVersion": "2018-02-01",
+			"properties": {
+				"mode": "incremental",
+				"templateLink": {
+					"uri": "[concat(parameters('containerUri'), '/ArmTemplate_1.json', parameters('containerSasToken'))]",
+					"contentVersion": "1.0.0.0"
+				},
+				"parameters": {
+					"factoryName": {
+						"value": "[parameters('factoryName')]"
+					},
+					"edl_storage_account_connectionString": {
+						"value": "[parameters('edl_storage_account_connectionString')]"
+					},
+					"ls_4_gen2_accountKey": {
+						"value": "[parameters('ls_4_gen2_accountKey')]"
+					},
+					"ls_4_gen2_deletion_accountKey": {
+						"value": "[parameters('ls_4_gen2_deletion_accountKey')]"
+					},
+					"ls_az_stg_acc_connectionString": {
+						"value": "[parameters('ls_az_stg_acc_connectionString')]"
+					},
+					"ls_az_storage_table_connectionString": {
+						"value": "[parameters('ls_az_storage_table_connectionString')]"
+					},
+					"ls_bdw_oracle_connectionString": {
+						"value": "[parameters('ls_bdw_oracle_connectionString')]"
+					},
+					"ls_bdw_oracle_qa_connectionString": {
+						"value": "[parameters('ls_bdw_oracle_qa_connectionString')]"
+					},
+					"ls_databricks_networth_raw_accessToken": {
+						"value": "[parameters('ls_databricks_networth_raw_accessToken')]"
+					},
+					"ls_ora_db_connectionString": {
+						"value": "[parameters('ls_ora_db_connectionString')]"
+					},
+					"ls_oracle_connectionString": {
+						"value": "[parameters('ls_oracle_connectionString')]"
+					},
+					"ls_4_gen2_properties_typeProperties_url": {
+						"value": "[parameters('ls_4_gen2_properties_typeProperties_url')]"
+					},
+					"ls_4_gen2_deletion_properties_typeProperties_url": {
+						"value": "[parameters('ls_4_gen2_deletion_properties_typeProperties_url')]"
+					},
+					"ls_amazon_awsp3_properties_typeProperties_host": {
+						"value": "[parameters('ls_amazon_awsp3_properties_typeProperties_host')]"
+					},
+					"ls_amazon_awsp3_properties_typeProperties_userName": {
+						"value": "[parameters('ls_amazon_awsp3_properties_typeProperties_userName')]"
+					},
+					"ls_ftp_ntw_server_properties_typeProperties_host": {
+						"value": "[parameters('ls_ftp_ntw_server_properties_typeProperties_host')]"
+					},
+					"ls_ftp_ntw_server_properties_typeProperties_userName": {
+						"value": "[parameters('ls_ftp_ntw_server_properties_typeProperties_userName')]"
+					},
+					"ls_ftp_ntw_server_new_properties_typeProperties_host": {
+						"value": "[parameters('ls_ftp_ntw_server_new_properties_typeProperties_host')]"
+					},
+					"ls_ftp_ntw_server_new_properties_typeProperties_userName": {
+						"value": "[parameters('ls_ftp_ntw_server_new_properties_typeProperties_userName')]"
+					},
+					"ls_hdfs_primary_on_prem_properties_typeProperties_url": {
+						"value": "[parameters('ls_hdfs_primary_on_prem_properties_typeProperties_url')]"
+					},
+					"ls_hdfs_primary_on_prem_properties_typeProperties_userName": {
+						"value": "[parameters('ls_hdfs_primary_on_prem_properties_typeProperties_userName')]"
+					},
+					"ls_hdfs_secondary_on_prem_properties_typeProperties_url": {
+						"value": "[parameters('ls_hdfs_secondary_on_prem_properties_typeProperties_url')]"
+					},
+					"ls_hdfs_secondary_on_prem_properties_typeProperties_userName": {
+						"value": "[parameters('ls_hdfs_secondary_on_prem_properties_typeProperties_userName')]"
+					},
+					"ls_onprem_vm_file_system_properties_typeProperties_host": {
+						"value": "[parameters('ls_onprem_vm_file_system_properties_typeProperties_host')]"
+					},
+					"ls_onprem_vm_file_system_properties_typeProperties_userId": {
+						"value": "[parameters('ls_onprem_vm_file_system_properties_typeProperties_userId')]"
+					},
+					"ls_sas_sftp_server_properties_typeProperties_host": {
+						"value": "[parameters('ls_sas_sftp_server_properties_typeProperties_host')]"
+					},
+					"ls_sas_sftp_server_properties_typeProperties_userName": {
+						"value": "[parameters('ls_sas_sftp_server_properties_typeProperties_userName')]"
+					}
+				}
+			},
+			"dependsOn": [
+				"[resourceId('Microsoft.Resources/deployments', 'mazcacnpenworthadf01_ArmTemplate_0')]"
+			]
+		},
+		{
+			"name": "mazcacnpenworthadf01_ArmTemplate_2",
+			"type": "Microsoft.Resources/deployments",
+			"apiVersion": "2018-02-01",
+			"properties": {
+				"mode": "incremental",
+				"templateLink": {
+					"uri": "[concat(parameters('containerUri'), '/ArmTemplate_2.json', parameters('containerSasToken'))]",
+					"contentVersion": "1.0.0.0"
+				},
+				"parameters": {
+					"factoryName": {
+						"value": "[parameters('factoryName')]"
+					},
+					"ls_sqlmi_eda_edl_ctl_fw_db_connectionString": {
+						"value": "[parameters('ls_sqlmi_eda_edl_ctl_fw_db_connectionString')]"
+					},
+					"ookla_http_server_linked_service_properties_typeProperties_url": {
+						"value": "[parameters('ookla_http_server_linked_service_properties_typeProperties_url')]"
+					},
+					"ookla_http_server_linked_service_properties_typeProperties_userName": {
+						"value": "[parameters('ookla_http_server_linked_service_properties_typeProperties_userName')]"
+					}
+				}
+			},
+			"dependsOn": [
+				"[resourceId('Microsoft.Resources/deployments', 'mazcacnpenworthadf01_ArmTemplate_1')]"
+			]
+		},
+		{
+			"name": "mazcacnpenworthadf01_ArmTemplate_3",
+			"type": "Microsoft.Resources/deployments",
+			"apiVersion": "2018-02-01",
+			"properties": {
+				"mode": "incremental",
+				"templateLink": {
+					"uri": "[concat(parameters('containerUri'), '/ArmTemplate_3.json', parameters('containerSasToken'))]",
+					"contentVersion": "1.0.0.0"
+				},
+				"parameters": {
+					"factoryName": {
+						"value": "[parameters('factoryName')]"
+					}
+				}
+			},
+			"dependsOn": [
+				"[resourceId('Microsoft.Resources/deployments', 'mazcacnpenworthadf01_ArmTemplate_2')]"
+			]
+		}
+	]
+}

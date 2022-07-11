@@ -1,0 +1,1497 @@
+{
+	"$schema": "http://schema.management.azure.com/schemas/2015-01-01/deploymentTemplate.json#",
+	"contentVersion": "1.0.0.0",
+	"parameters": {
+		"factoryName": {
+			"type": "string",
+			"metadata": "Data Factory name",
+			"defaultValue": "mazcacnpenworthadf01"
+		},
+		"ls_sqlmi_eda_edl_ctl_fw_db_connectionString": {
+			"type": "secureString",
+			"metadata": "Secure string for 'connectionString' of 'ls_sqlmi_eda_edl_ctl_fw_db'"
+		},
+		"ookla_http_server_linked_service_properties_typeProperties_url": {
+			"type": "string",
+			"defaultValue": "https://extracts.ookla.com/files/"
+		},
+		"ookla_http_server_linked_service_properties_typeProperties_userName": {
+			"type": "string",
+			"defaultValue": "rogers_co"
+		}
+	},
+	"variables": {
+		"factoryId": "[concat('Microsoft.DataFactory/factories/', parameters('factoryName'))]"
+	},
+	"resources": [
+		{
+			"name": "[concat(parameters('factoryName'), '/ls_sqlmi_eda_edl_ctl_fw_db')]",
+			"type": "Microsoft.DataFactory/factories/linkedServices",
+			"apiVersion": "2018-06-01",
+			"properties": {
+				"description": "Linked Service to connect to EDA_EDL_CTL_FW Database",
+				"annotations": [],
+				"type": "AzureSqlMI",
+				"typeProperties": {
+					"connectionString": "[parameters('ls_sqlmi_eda_edl_ctl_fw_db_connectionString')]"
+				},
+				"connectVia": {
+					"referenceName": "networthir",
+					"type": "IntegrationRuntimeReference"
+				}
+			},
+			"dependsOn": []
+		},
+		{
+			"name": "[concat(parameters('factoryName'), '/ookla_http_server_linked_service')]",
+			"type": "Microsoft.DataFactory/factories/linkedServices",
+			"apiVersion": "2018-06-01",
+			"properties": {
+				"description": "This linked service will be used to connect to ookla server to download speed test files.",
+				"annotations": [],
+				"type": "HttpServer",
+				"typeProperties": {
+					"url": "[parameters('ookla_http_server_linked_service_properties_typeProperties_url')]",
+					"enableServerCertificateValidation": true,
+					"authenticationType": "Basic",
+					"userName": "[parameters('ookla_http_server_linked_service_properties_typeProperties_userName')]",
+					"password": {
+						"type": "AzureKeyVaultSecret",
+						"store": {
+							"referenceName": "ls_5g_data_enablment_az_kv",
+							"type": "LinkedServiceReference"
+						},
+						"secretName": "secret-5g-data-enablement-ookla-id-pwd"
+					}
+				}
+			},
+			"dependsOn": []
+		},
+		{
+			"name": "[concat(parameters('factoryName'), '/ADB TEST')]",
+			"type": "Microsoft.DataFactory/factories/pipelines",
+			"apiVersion": "2018-06-01",
+			"properties": {
+				"activities": [
+					{
+						"name": "Notebook1",
+						"type": "DatabricksNotebook",
+						"dependsOn": [],
+						"policy": {
+							"timeout": "7.00:00:00",
+							"retry": 0,
+							"retryIntervalInSeconds": 30,
+							"secureOutput": false,
+							"secureInput": false
+						},
+						"userProperties": [],
+						"typeProperties": {
+							"notebookPath": "/Shared/ADB TEST"
+						},
+						"linkedServiceName": {
+							"referenceName": "Networth_DataBricks",
+							"type": "LinkedServiceReference"
+						}
+					}
+				],
+				"policy": {
+					"elapsedTimeMetric": {},
+					"cancelAfter": {}
+				},
+				"annotations": [],
+				"lastPublishTime": "2022-03-09T16:28:00Z"
+			},
+			"dependsOn": []
+		},
+		{
+			"name": "[concat(parameters('factoryName'), '/PL_CH_DIM_NODE_PORT')]",
+			"type": "Microsoft.DataFactory/factories/pipelines",
+			"apiVersion": "2018-06-01",
+			"properties": {
+				"activities": [
+					{
+						"name": "chdimnodedataprocess",
+						"type": "DatabricksNotebook",
+						"dependsOn": [],
+						"policy": {
+							"timeout": "7.00:00:00",
+							"retry": 0,
+							"retryIntervalInSeconds": 30,
+							"secureOutput": false,
+							"secureInput": false
+						},
+						"userProperties": [],
+						"typeProperties": {
+							"notebookPath": "/app/dmt/network/networth/connected-home/NTBK_DIM_NODE_DETAIL_PORT",
+							"baseParameters": {
+								"targetCuratedLocation": "/mnt/rogers-eda-derived-prd-sensitive-storage/networth/connected_home/connectedhome/",
+								"sourceCuratedLocation": "/mnt/rogers-eda-curated-dev-sensitive-storage/hive/"
+							}
+						},
+						"linkedServiceName": {
+							"referenceName": "Networth_DataBricks",
+							"type": "LinkedServiceReference"
+						}
+					}
+				],
+				"policy": {
+					"elapsedTimeMetric": {},
+					"cancelAfter": {}
+				},
+				"annotations": []
+			},
+			"dependsOn": []
+		},
+		{
+			"name": "[concat(parameters('factoryName'), '/PL_UPDT_ELT_EXECUTION')]",
+			"type": "Microsoft.DataFactory/factories/pipelines",
+			"apiVersion": "2018-06-01",
+			"properties": {
+				"activities": [
+					{
+						"name": "Update EDA_EDL Control tables",
+						"description": "decide to update the feed tables and the metadata control with SUCCESS and not for FAILED ",
+						"type": "Switch",
+						"dependsOn": [],
+						"userProperties": [],
+						"typeProperties": {
+							"on": {
+								"value": "@pipeline().parameters.RUN_STATUS",
+								"type": "Expression"
+							},
+							"cases": [
+								{
+									"value": "FAILED",
+									"activities": [
+										{
+											"name": "Raise_Exception_Finally",
+											"description": "Call Raise Exception we got the FAILED status",
+											"type": "AppendVariable",
+											"dependsOn": [
+												{
+													"activity": "Update EDA_EDL Feed Tables on Failure",
+													"dependencyConditions": [
+														"Completed"
+													]
+												}
+											],
+											"userProperties": [],
+											"typeProperties": {
+												"variableName": "V_EXCEPTION_ARR",
+												"value": {
+													"value": "@array(pipeline().parameters.RUN_MESSAGE)",
+													"type": "Expression"
+												}
+											}
+										},
+										{
+											"name": "Update EDA_EDL Feed Tables on Failure",
+											"type": "SqlServerStoredProcedure",
+											"dependsOn": [],
+											"policy": {
+												"timeout": "7.00:00:00",
+												"retry": 0,
+												"retryIntervalInSeconds": 30,
+												"secureOutput": false,
+												"secureInput": false
+											},
+											"userProperties": [],
+											"typeProperties": {
+												"storedProcedureName": "[[dbo].[UpdateEDAEDLFeedTablesOnFailure]",
+												"storedProcedureParameters": {
+													"COMMENTS": {
+														"value": {
+															"value": "@pipeline().parameters.RUN_MESSAGE",
+															"type": "Expression"
+														},
+														"type": "String"
+													},
+													"FEED_NAME": {
+														"value": {
+															"value": "@pipeline().parameters.JOB_NAME",
+															"type": "Expression"
+														},
+														"type": "String"
+													},
+													"RUN_ID": {
+														"value": {
+															"value": "@pipeline().parameters.EXEC_RUN_ID",
+															"type": "Expression"
+														},
+														"type": "String"
+													},
+													"STAGE": {
+														"value": {
+															"value": "@pipeline().parameters.STAGE_NAME",
+															"type": "Expression"
+														},
+														"type": "String"
+													},
+													"STATUS": {
+														"value": "0",
+														"type": "Int32"
+													},
+													"TASK_ID": {
+														"value": {
+															"value": "@pipeline().parameters.EXEC_RUN_ID",
+															"type": "Expression"
+														},
+														"type": "String"
+													},
+													"UPDATE_TS": {
+														"value": {
+															"value": "@formatDateTime(utcnow(),'yyyy-MM-dd HH:mm:ss')",
+															"type": "Expression"
+														},
+														"type": "DateTime"
+													}
+												}
+											},
+											"linkedServiceName": {
+												"referenceName": "ls_sqlmi_eda_edl_ctl_fw_db",
+												"type": "LinkedServiceReference"
+											}
+										}
+									]
+								},
+								{
+									"value": "SUCCESS",
+									"activities": [
+										{
+											"name": "Update EDA_EDL Feed and MetaData Tables on Success",
+											"type": "SqlServerStoredProcedure",
+											"dependsOn": [],
+											"policy": {
+												"timeout": "7.00:00:00",
+												"retry": 0,
+												"retryIntervalInSeconds": 30,
+												"secureOutput": false,
+												"secureInput": false
+											},
+											"userProperties": [],
+											"typeProperties": {
+												"storedProcedureName": "[[dbo].[UpdateEDAEDLFeedTablesOnSuccess]",
+												"storedProcedureParameters": {
+													"FEED_NAME": {
+														"value": {
+															"value": "@pipeline().parameters.JOB_NAME",
+															"type": "Expression"
+														},
+														"type": "String"
+													},
+													"LAST_SUCC_JOB_RUN_TS": {
+														"value": {
+															"value": "@convertTimeZone(utcnow(),'UTC','Eastern Standard Time','yyyy-MM-dd HH:mm:ss')",
+															"type": "Expression"
+														},
+														"type": "DateTime"
+													},
+													"PREV_RUN_REC_DATE": {
+														"value": {
+															"value": "@if(or(equals(pipeline().parameters.PREV_DELTA_VALUE,'NULL'),empty(pipeline().parameters.PREV_DELTA_VALUE)),'1970-01-01 00:00:00.000',pipeline().parameters.PREV_DELTA_VALUE)",
+															"type": "Expression"
+														},
+														"type": "DateTime"
+													},
+													"REC_COUNT": {
+														"value": {
+															"value": "@pipeline().parameters.RECORD_COUNT",
+															"type": "Expression"
+														},
+														"type": "Int64"
+													},
+													"RUN_ID": {
+														"value": {
+															"value": "@pipeline().parameters.EXEC_RUN_ID",
+															"type": "Expression"
+														},
+														"type": "String"
+													},
+													"RUN_REC_DATE": {
+														"value": {
+															"value": "@if(or(equals(pipeline().parameters.CURR_DELTA_VALUE,'NULL'),empty(pipeline().parameters.CURR_DELTA_VALUE)),'1970-01-01 00:00:00.000',formatDateTime(pipeline().parameters.CURR_DELTA_VALUE,'yyyy-MM-dd HH:mm:ss'))",
+															"type": "Expression"
+														},
+														"type": "DateTime"
+													},
+													"STAGE": {
+														"value": {
+															"value": "@pipeline().parameters.STAGE_NAME",
+															"type": "Expression"
+														},
+														"type": "String"
+													},
+													"STATUS": {
+														"value": {
+															"value": "1",
+															"type": "Expression"
+														},
+														"type": "Int32"
+													},
+													"TASK_END_TS": {
+														"value": {
+															"value": "@convertTimeZone(pipeline().TriggerTime,'UTC','Eastern Standard Time','yyyy-MM-dd HH:mm:ss')",
+															"type": "Expression"
+														},
+														"type": "DateTime"
+													},
+													"TASK_ID": {
+														"value": {
+															"value": "@pipeline().parameters.EXEC_RUN_ID",
+															"type": "Expression"
+														},
+														"type": "String"
+													},
+													"UPDATE_TS": {
+														"value": {
+															"value": "@formatDateTime(utcnow(),'yyyy-MM-dd HH:mm:ss')",
+															"type": "Expression"
+														},
+														"type": "DateTime"
+													},
+													"COMMENTS": {
+														"value": {
+															"value": "@pipeline().parameters.RUN_MESSAGE",
+															"type": "Expression"
+														},
+														"type": "String"
+													},
+													"ELT_PREV_DELTA_VALUE": {
+														"value": {
+															"value": "@if(equals(pipeline().parameters.PREV_DELTA_VALUE,'NULL'),pipeline().parameters.PREV_DELTA_VALUE,formatDateTime(pipeline().parameters.PREV_DELTA_VALUE,'yyyy-MM-ddTHH:mm:ss'))",
+															"type": "Expression"
+														},
+														"type": "String"
+													},
+													"ELT_CURR_DELTA_VALUE": {
+														"value": {
+															"value": "@if(equals(pipeline().parameters.CURR_DELTA_VALUE,'NULL'),pipeline().parameters.CURR_DELTA_VALUE,formatDateTime(pipeline().parameters.CURR_DELTA_VALUE,'yyyy-MM-ddTHH:mm:ss'))",
+															"type": "Expression"
+														},
+														"type": "String"
+													}
+												}
+											},
+											"linkedServiceName": {
+												"referenceName": "ls_sqlmi_eda_edl_ctl_fw_db",
+												"type": "LinkedServiceReference"
+											}
+										}
+									]
+								}
+							]
+						}
+					}
+				],
+				"policy": {
+					"elapsedTimeMetric": {},
+					"cancelAfter": {}
+				},
+				"parameters": {
+					"EXEC_RUN_ID": {
+						"type": "string",
+						"defaultValue": "61d8cf05-ad3c-49cf-8fd2-10918140d837"
+					},
+					"RUN_STATUS": {
+						"type": "string",
+						"defaultValue": "SUCCESS"
+					},
+					"RUN_MESSAGE": {
+						"type": "string",
+						"defaultValue": "DC.DC_E_NR_NRCELLDU_DAY"
+					},
+					"PREV_DELTA_VALUE": {
+						"type": "string",
+						"defaultValue": "NULL"
+					},
+					"CURR_DELTA_VALUE": {
+						"type": "string",
+						"defaultValue": "NULL"
+					},
+					"JOB_NAME": {
+						"type": "string",
+						"defaultValue": "DC.DC_E_NR_NRCELLDU_DAY"
+					},
+					"TASK_START_TS": {
+						"type": "string",
+						"defaultValue": "NULL"
+					},
+					"RECORD_COUNT": {
+						"type": "string",
+						"defaultValue": "10"
+					},
+					"STAGE_NAME": {
+						"type": "string",
+						"defaultValue": "STAGE1"
+					}
+				},
+				"variables": {
+					"V_EXCEPTION_ARR": {
+						"type": "Array"
+					},
+					"V_ELT_METADATA_TABLE": {
+						"type": "String",
+						"defaultValue": "EltMetadataControl"
+					},
+					"V_METADATA_DEF_PARTITION_KEY": {
+						"type": "String",
+						"defaultValue": "DEFAULT"
+					},
+					"V_ELT_LOAD_CONTROL_TABLE": {
+						"type": "String",
+						"defaultValue": "EtlLoadControl"
+					}
+				},
+				"folder": {
+					"name": "Data Ingestion FrmWrk"
+				},
+				"annotations": [],
+				"lastPublishTime": "2022-03-09T16:28:00Z"
+			},
+			"dependsOn": [
+				"[concat(variables('factoryId'), '/linkedServices/ls_sqlmi_eda_edl_ctl_fw_db')]"
+			]
+		},
+		{
+			"name": "[concat(parameters('factoryName'), '/planet_pipeline')]",
+			"type": "Microsoft.DataFactory/factories/pipelines",
+			"apiVersion": "2018-06-01",
+			"properties": {
+				"description": "pipeline to read and process Planet coverage data files ",
+				"activities": [
+					{
+						"name": "Notebook1",
+						"type": "DatabricksNotebook",
+						"dependsOn": [],
+						"policy": {
+							"timeout": "7.00:00:00",
+							"retry": 0,
+							"retryIntervalInSeconds": 30,
+							"secureOutput": false,
+							"secureInput": false
+						},
+						"userProperties": [],
+						"typeProperties": {
+							"notebookPath": "/Users/sachin.sharma@rci.rogers.ca/param_test",
+							"baseParameters": {
+								"dir": {
+									"value": "@pipeline().parameters.dir",
+									"type": "Expression"
+								},
+								"month": {
+									"value": "@pipeline().parameters.month",
+									"type": "Expression"
+								},
+								"year": {
+									"value": "@pipeline().parameters.year",
+									"type": "Expression"
+								}
+							}
+						},
+						"linkedServiceName": {
+							"referenceName": "Networth_DataBricks",
+							"type": "LinkedServiceReference"
+						}
+					},
+					{
+						"name": "result_variable",
+						"type": "SetVariable",
+						"dependsOn": [
+							{
+								"activity": "Notebook1",
+								"dependencyConditions": [
+									"Succeeded"
+								]
+							}
+						],
+						"userProperties": [],
+						"typeProperties": {
+							"variableName": "dbr_result",
+							"value": {
+								"value": "@activity('Notebook1').output.runOutput",
+								"type": "Expression"
+							}
+						}
+					}
+				],
+				"policy": {
+					"elapsedTimeMetric": {},
+					"cancelAfter": {}
+				},
+				"parameters": {
+					"dir": {
+						"type": "string",
+						"defaultValue": "/dbfs/planet-files/"
+					},
+					"year": {
+						"type": "string",
+						"defaultValue": "2022"
+					},
+					"month": {
+						"type": "string",
+						"defaultValue": "01"
+					},
+					"result": {
+						"type": "string",
+						"defaultValue": "none"
+					}
+				},
+				"variables": {
+					"dbr_result": {
+						"type": "String"
+					}
+				},
+				"annotations": [],
+				"lastPublishTime": "2022-03-09T16:28:00Z"
+			},
+			"dependsOn": []
+		},
+		{
+			"name": "[concat(parameters('factoryName'), '/BLOB_Binary_Datasets')]",
+			"type": "Microsoft.DataFactory/factories/datasets",
+			"apiVersion": "2018-06-01",
+			"properties": {
+				"description": "Generic Dataset to represent any blob as binary",
+				"linkedServiceName": {
+					"referenceName": "ls_az_stg_acc",
+					"type": "LinkedServiceReference"
+				},
+				"parameters": {
+					"CONTAINER": {
+						"type": "string",
+						"defaultValue": "nw-rds"
+					},
+					"FOLDER_FILE": {
+						"type": "string"
+					}
+				},
+				"folder": {
+					"name": "DataSets_4_DIF"
+				},
+				"annotations": [],
+				"type": "Binary",
+				"typeProperties": {
+					"location": {
+						"type": "AzureBlobStorageLocation",
+						"folderPath": {
+							"value": "@dataset().FOLDER_FILE",
+							"type": "Expression"
+						},
+						"container": {
+							"value": "@dataset().CONTAINER",
+							"type": "Expression"
+						}
+					}
+				}
+			},
+			"dependsOn": []
+		},
+		{
+			"name": "[concat(parameters('factoryName'), '/CNE_BlobStorage')]",
+			"type": "Microsoft.DataFactory/factories/datasets",
+			"apiVersion": "2018-06-01",
+			"properties": {
+				"linkedServiceName": {
+					"referenceName": "CNE_Azure_Account",
+					"type": "LinkedServiceReference"
+				},
+				"folder": {
+					"name": "DataSets_4_DIF"
+				},
+				"annotations": [],
+				"type": "Orc",
+				"typeProperties": {
+					"location": {
+						"type": "AzureBlobStorageLocation",
+						"folderPath": "eniq.db/DC_E_ERBS_EUTRANCELLFDD_V_DAY",
+						"container": "nw-ods"
+					},
+					"enablePhysicalSchema": true
+				},
+				"schema": [
+					{
+						"type": "INT",
+						"name": "_col0"
+					},
+					{
+						"type": "INT",
+						"name": "_col1"
+					},
+					{
+						"type": "LONG",
+						"name": "_col2"
+					},
+					{
+						"type": "INT",
+						"name": "_col3"
+					},
+					{
+						"type": "STRING",
+						"name": "_col4"
+					},
+					{
+						"type": "STRING",
+						"name": "_col5"
+					},
+					{
+						"type": "INT",
+						"name": "_col6"
+					},
+					{
+						"type": "STRING",
+						"name": "_col7"
+					},
+					{
+						"type": "INT",
+						"name": "_col8"
+					},
+					{
+						"type": "STRING",
+						"name": "_col9"
+					},
+					{
+						"type": "STRING",
+						"name": "_col10"
+					},
+					{
+						"type": "STRING",
+						"name": "_col11"
+					},
+					{
+						"type": "STRING",
+						"name": "_col12"
+					},
+					{
+						"type": "INT",
+						"name": "_col13"
+					},
+					{
+						"type": "STRING",
+						"name": "_col14"
+					},
+					{
+						"type": "STRING",
+						"name": "_col15"
+					},
+					{
+						"type": "LONG",
+						"name": "_col16"
+					},
+					{
+						"precision": 18,
+						"scale": 0,
+						"type": "DECIMAL",
+						"name": "_col17"
+					},
+					{
+						"precision": 18,
+						"scale": 0,
+						"type": "DECIMAL",
+						"name": "_col18"
+					},
+					{
+						"precision": 18,
+						"scale": 0,
+						"type": "DECIMAL",
+						"name": "_col19"
+					},
+					{
+						"precision": 18,
+						"scale": 0,
+						"type": "DECIMAL",
+						"name": "_col20"
+					},
+					{
+						"precision": 18,
+						"scale": 0,
+						"type": "DECIMAL",
+						"name": "_col21"
+					},
+					{
+						"precision": 18,
+						"scale": 0,
+						"type": "DECIMAL",
+						"name": "_col22"
+					},
+					{
+						"precision": 18,
+						"scale": 0,
+						"type": "DECIMAL",
+						"name": "_col23"
+					},
+					{
+						"precision": 18,
+						"scale": 0,
+						"type": "DECIMAL",
+						"name": "_col24"
+					},
+					{
+						"precision": 18,
+						"scale": 0,
+						"type": "DECIMAL",
+						"name": "_col25"
+					},
+					{
+						"precision": 18,
+						"scale": 0,
+						"type": "DECIMAL",
+						"name": "_col26"
+					},
+					{
+						"precision": 18,
+						"scale": 0,
+						"type": "DECIMAL",
+						"name": "_col27"
+					},
+					{
+						"precision": 18,
+						"scale": 0,
+						"type": "DECIMAL",
+						"name": "_col28"
+					},
+					{
+						"precision": 18,
+						"scale": 0,
+						"type": "DECIMAL",
+						"name": "_col29"
+					},
+					{
+						"precision": 18,
+						"scale": 0,
+						"type": "DECIMAL",
+						"name": "_col30"
+					},
+					{
+						"precision": 18,
+						"scale": 0,
+						"type": "DECIMAL",
+						"name": "_col31"
+					},
+					{
+						"precision": 18,
+						"scale": 0,
+						"type": "DECIMAL",
+						"name": "_col32"
+					},
+					{
+						"precision": 18,
+						"scale": 0,
+						"type": "DECIMAL",
+						"name": "_col33"
+					},
+					{
+						"precision": 18,
+						"scale": 0,
+						"type": "DECIMAL",
+						"name": "_col34"
+					},
+					{
+						"precision": 18,
+						"scale": 0,
+						"type": "DECIMAL",
+						"name": "_col35"
+					},
+					{
+						"precision": 18,
+						"scale": 0,
+						"type": "DECIMAL",
+						"name": "_col36"
+					},
+					{
+						"precision": 18,
+						"scale": 0,
+						"type": "DECIMAL",
+						"name": "_col37"
+					},
+					{
+						"precision": 18,
+						"scale": 0,
+						"type": "DECIMAL",
+						"name": "_col38"
+					},
+					{
+						"precision": 18,
+						"scale": 0,
+						"type": "DECIMAL",
+						"name": "_col39"
+					},
+					{
+						"precision": 18,
+						"scale": 0,
+						"type": "DECIMAL",
+						"name": "_col40"
+					},
+					{
+						"precision": 18,
+						"scale": 0,
+						"type": "DECIMAL",
+						"name": "_col41"
+					},
+					{
+						"precision": 18,
+						"scale": 0,
+						"type": "DECIMAL",
+						"name": "_col42"
+					},
+					{
+						"precision": 18,
+						"scale": 0,
+						"type": "DECIMAL",
+						"name": "_col43"
+					},
+					{
+						"precision": 18,
+						"scale": 0,
+						"type": "DECIMAL",
+						"name": "_col44"
+					},
+					{
+						"precision": 18,
+						"scale": 0,
+						"type": "DECIMAL",
+						"name": "_col45"
+					},
+					{
+						"precision": 18,
+						"scale": 0,
+						"type": "DECIMAL",
+						"name": "_col46"
+					},
+					{
+						"precision": 18,
+						"scale": 0,
+						"type": "DECIMAL",
+						"name": "_col47"
+					},
+					{
+						"precision": 18,
+						"scale": 0,
+						"type": "DECIMAL",
+						"name": "_col48"
+					},
+					{
+						"precision": 18,
+						"scale": 0,
+						"type": "DECIMAL",
+						"name": "_col49"
+					},
+					{
+						"precision": 18,
+						"scale": 0,
+						"type": "DECIMAL",
+						"name": "_col50"
+					},
+					{
+						"precision": 18,
+						"scale": 0,
+						"type": "DECIMAL",
+						"name": "_col51"
+					},
+					{
+						"precision": 18,
+						"scale": 0,
+						"type": "DECIMAL",
+						"name": "_col52"
+					},
+					{
+						"precision": 18,
+						"scale": 0,
+						"type": "DECIMAL",
+						"name": "_col53"
+					},
+					{
+						"precision": 18,
+						"scale": 0,
+						"type": "DECIMAL",
+						"name": "_col54"
+					},
+					{
+						"precision": 18,
+						"scale": 0,
+						"type": "DECIMAL",
+						"name": "_col55"
+					},
+					{
+						"type": "STRING",
+						"name": "_col56"
+					},
+					{
+						"type": "LONG",
+						"name": "_col57"
+					},
+					{
+						"type": "STRING",
+						"name": "_col58"
+					},
+					{
+						"type": "STRING",
+						"name": "_col59"
+					},
+					{
+						"type": "INT",
+						"name": "_col60"
+					},
+					{
+						"type": "INT",
+						"name": "_col61"
+					}
+				]
+			},
+			"dependsOn": []
+		},
+		{
+			"name": "[concat(parameters('factoryName'), '/CSV_Datasets')]",
+			"type": "Microsoft.DataFactory/factories/datasets",
+			"apiVersion": "2018-06-01",
+			"properties": {
+				"description": "Datasets for representing text CSV files",
+				"linkedServiceName": {
+					"referenceName": "ls_az_stg_acc",
+					"type": "LinkedServiceReference"
+				},
+				"parameters": {
+					"RDS_STAGE_LOC": {
+						"type": "String",
+						"defaultValue": "@pipeline().parameters.RDS_STAGE_LOC"
+					},
+					"RDS_STAGE_FILE_FOLDER": {
+						"type": "String",
+						"defaultValue": "@pipeline().parameters.RDS_STAGE_FILE_FOLDER"
+					}
+				},
+				"folder": {
+					"name": "DataSets_4_DIF"
+				},
+				"annotations": [],
+				"type": "DelimitedText",
+				"typeProperties": {
+					"location": {
+						"type": "AzureBlobStorageLocation",
+						"fileName": {
+							"value": "@dataset().RDS_STAGE_FILE_FOLDER",
+							"type": "Expression"
+						},
+						"folderPath": {
+							"value": "@dataset().RDS_STAGE_FILE_FOLDER",
+							"type": "Expression"
+						},
+						"container": {
+							"value": "@dataset().RDS_STAGE_LOC",
+							"type": "Expression"
+						}
+					},
+					"columnDelimiter": ",",
+					"escapeChar": "\\",
+					"firstRowAsHeader": false,
+					"quoteChar": "\""
+				},
+				"schema": []
+			},
+			"dependsOn": []
+		},
+		{
+			"name": "[concat(parameters('factoryName'), '/DS_4_PARQUET')]",
+			"type": "Microsoft.DataFactory/factories/datasets",
+			"apiVersion": "2018-06-01",
+			"properties": {
+				"linkedServiceName": {
+					"referenceName": "ls_4_gen2",
+					"type": "LinkedServiceReference"
+				},
+				"parameters": {
+					"CONTAINER": {
+						"type": "string"
+					},
+					"FOLDER_FILE": {
+						"type": "string"
+					}
+				},
+				"folder": {
+					"name": "DataSets_4_DIF"
+				},
+				"annotations": [],
+				"type": "Parquet",
+				"typeProperties": {
+					"location": {
+						"type": "AzureBlobFSLocation",
+						"folderPath": {
+							"value": "@dataset().FOLDER_FILE",
+							"type": "Expression"
+						},
+						"fileSystem": {
+							"value": "@dataset().CONTAINER",
+							"type": "Expression"
+						}
+					},
+					"compressionCodec": "snappy"
+				},
+				"schema": []
+			},
+			"dependsOn": []
+		},
+		{
+			"name": "[concat(parameters('factoryName'), '/DS_ETL_LOAD_CONTROL')]",
+			"type": "Microsoft.DataFactory/factories/datasets",
+			"apiVersion": "2018-06-01",
+			"properties": {
+				"description": "Generic Dataset representing azure storage tables",
+				"linkedServiceName": {
+					"referenceName": "ls_az_storage_table",
+					"type": "LinkedServiceReference"
+				},
+				"parameters": {
+					"AZ_STORAGE_TABLE": {
+						"type": "String"
+					}
+				},
+				"folder": {
+					"name": "DataSets_4_DIF"
+				},
+				"annotations": [],
+				"type": "AzureTable",
+				"schema": [],
+				"typeProperties": {
+					"tableName": {
+						"value": "@dataset().AZ_STORAGE_TABLE",
+						"type": "Expression"
+					}
+				}
+			},
+			"dependsOn": []
+		},
+		{
+			"name": "[concat(parameters('factoryName'), '/EDA_EDL_SQLMI_Datasets')]",
+			"type": "Microsoft.DataFactory/factories/datasets",
+			"apiVersion": "2018-06-01",
+			"properties": {
+				"linkedServiceName": {
+					"referenceName": "ls_sqlmi_eda_edl_ctl_fw_db",
+					"type": "LinkedServiceReference"
+				},
+				"folder": {
+					"name": "DataSets_4_DIF"
+				},
+				"annotations": [],
+				"type": "AzureSqlMITable",
+				"schema": [
+					{
+						"name": "JOB_NAME",
+						"type": "nvarchar"
+					},
+					{
+						"name": "CSV_HEADER_FLG",
+						"type": "nvarchar"
+					},
+					{
+						"name": "CURR_MAX_DELTA_COL_VALUE",
+						"type": "nvarchar"
+					},
+					{
+						"name": "CURR_MAX_DELTA_COL_VALUE_FORMAT",
+						"type": "nvarchar"
+					},
+					{
+						"name": "DBFS_COALESCE",
+						"type": "nvarchar"
+					},
+					{
+						"name": "DBFS_FILE_FORMAT",
+						"type": "nvarchar"
+					},
+					{
+						"name": "DBFS_PARTITION_BY",
+						"type": "nvarchar"
+					},
+					{
+						"name": "DBFS_SAVE_MODE",
+						"type": "nvarchar"
+					},
+					{
+						"name": "DEST_TBL",
+						"type": "nvarchar"
+					},
+					{
+						"name": "DEST_TYPE",
+						"type": "nvarchar"
+					},
+					{
+						"name": "FAIL_ON_NO_DATA",
+						"type": "nvarchar"
+					},
+					{
+						"name": "HDFS_PARTITION_COL_FORMAT",
+						"type": "nvarchar"
+					},
+					{
+						"name": "INFO_APP_OWNER",
+						"type": "nvarchar"
+					},
+					{
+						"name": "INFO_BIZ_UNIT",
+						"type": "nvarchar"
+					},
+					{
+						"name": "INFO_COST_CENTER",
+						"type": "nvarchar"
+					},
+					{
+						"name": "INFO_DATASET_DETAILS",
+						"type": "nvarchar"
+					},
+					{
+						"name": "IS_ACTIVE",
+						"type": "nvarchar"
+					},
+					{
+						"name": "IS_AZ_AUDIT_COLS_2_ADD",
+						"type": "nvarchar"
+					},
+					{
+						"name": "LOAD_TYPE",
+						"type": "nvarchar"
+					},
+					{
+						"name": "MAPPING",
+						"type": "nvarchar"
+					},
+					{
+						"name": "ODS_LOC",
+						"type": "nvarchar"
+					},
+					{
+						"name": "PARTITION_THRESHOLD",
+						"type": "nvarchar"
+					},
+					{
+						"name": "PARTITION_THRESHOLD_TYPE",
+						"type": "nvarchar"
+					},
+					{
+						"name": "PURGE_FREQ_DAYS",
+						"type": "nvarchar"
+					},
+					{
+						"name": "QRY",
+						"type": "nvarchar"
+					},
+					{
+						"name": "RDS_STAGE_FILE_FOLDER",
+						"type": "nvarchar"
+					},
+					{
+						"name": "RDS_STAGE_FILE_FORMAT",
+						"type": "nvarchar"
+					},
+					{
+						"name": "RDS_STAGE_LOC",
+						"type": "nvarchar"
+					},
+					{
+						"name": "SRC_CSV_HEADER_FLG",
+						"type": "nvarchar"
+					},
+					{
+						"name": "SRC_CUSTOM_WHERE_CLAUSE",
+						"type": "nvarchar"
+					},
+					{
+						"name": "SRC_DELTA_COL",
+						"type": "nvarchar"
+					},
+					{
+						"name": "SRC_TBL_FILE_NAME_PATTERN",
+						"type": "nvarchar"
+					},
+					{
+						"name": "SRC_TBL_FILE_PATH",
+						"type": "nvarchar"
+					},
+					{
+						"name": "SRC_TBL_FILE_PATTERN",
+						"type": "nvarchar"
+					},
+					{
+						"name": "SRC_TBL_PK_CSV",
+						"type": "nvarchar"
+					},
+					{
+						"name": "SRC_TYPE",
+						"type": "nvarchar"
+					},
+					{
+						"name": "WINDOW_END_TIME_UTC",
+						"type": "nvarchar"
+					},
+					{
+						"name": "WINDOW_START_TIME_UTC",
+						"type": "nvarchar"
+					}
+				],
+				"typeProperties": {
+					"schema": "dbo",
+					"table": "elt_metadata_control"
+				}
+			},
+			"dependsOn": [
+				"[concat(variables('factoryId'), '/linkedServices/ls_sqlmi_eda_edl_ctl_fw_db')]"
+			]
+		},
+		{
+			"name": "[concat(parameters('factoryName'), '/EDL_Remedy')]",
+			"type": "Microsoft.DataFactory/factories/datasets",
+			"apiVersion": "2018-06-01",
+			"properties": {
+				"linkedServiceName": {
+					"referenceName": "edl_storage_account",
+					"type": "LinkedServiceReference"
+				},
+				"folder": {
+					"name": "DataSets_4_DIF"
+				},
+				"annotations": [],
+				"type": "Orc",
+				"typeProperties": {
+					"location": {
+						"type": "AzureBlobStorageLocation",
+						"folderPath": "networth/remedy.db/RADIOENG_ERP_SITEINFO",
+						"container": "rogers-eda-raw-prd-sensitive-storage"
+					},
+					"enablePhysicalSchema": true
+				},
+				"schema": []
+			},
+			"dependsOn": []
+		},
+		{
+			"name": "[concat(parameters('factoryName'), '/ENIQ_EDL_ORC')]",
+			"type": "Microsoft.DataFactory/factories/datasets",
+			"apiVersion": "2018-06-01",
+			"properties": {
+				"linkedServiceName": {
+					"referenceName": "ls_az_stg_acc",
+					"type": "LinkedServiceReference"
+				},
+				"folder": {
+					"name": "DataSets_4_DIF"
+				},
+				"annotations": [],
+				"type": "Orc",
+				"typeProperties": {
+					"location": {
+						"type": "AzureBlobStorageLocation",
+						"folderPath": "DC_E_ERBS_EUTRANCELLFDD_V_DAY",
+						"container": "rogers-eda-raw-prd-sensitive-storage/networth/eniq.db"
+					},
+					"enablePhysicalSchema": true
+				},
+				"schema": []
+			},
+			"dependsOn": []
+		},
+		{
+			"name": "[concat(parameters('factoryName'), '/HDFS_Datasets')]",
+			"type": "Microsoft.DataFactory/factories/datasets",
+			"apiVersion": "2018-06-01",
+			"properties": {
+				"description": "A Generic Dataset for representing HDFS files in Binary format ",
+				"linkedServiceName": {
+					"referenceName": "UserCredentials_A",
+					"type": "LinkedServiceReference"
+				},
+				"folder": {
+					"name": "DataSets_4_DIF"
+				},
+				"annotations": [],
+				"type": "Binary",
+				"typeProperties": {
+					"location": {
+						"type": "HdfsLocation"
+					}
+				}
+			},
+			"dependsOn": []
+		},
+		{
+			"name": "[concat(parameters('factoryName'), '/HDFS_Secondary_Datasets')]",
+			"type": "Microsoft.DataFactory/factories/datasets",
+			"apiVersion": "2018-06-01",
+			"properties": {
+				"description": "HA Dataset from HA webHDFS url ",
+				"linkedServiceName": {
+					"referenceName": "ls_hdfs_secondary_on_prem",
+					"type": "LinkedServiceReference"
+				},
+				"folder": {
+					"name": "DataSets_4_DIF"
+				},
+				"annotations": [],
+				"type": "Binary",
+				"typeProperties": {
+					"location": {
+						"type": "HdfsLocation"
+					}
+				}
+			},
+			"dependsOn": []
+		},
+		{
+			"name": "[concat(parameters('factoryName'), '/JSON_Datasets')]",
+			"type": "Microsoft.DataFactory/factories/datasets",
+			"apiVersion": "2018-06-01",
+			"properties": {
+				"linkedServiceName": {
+					"referenceName": "ls_4_gen2",
+					"type": "LinkedServiceReference"
+				},
+				"parameters": {
+					"CONTAINER": {
+						"type": "string",
+						"defaultValue": "@if(equals(pipeline().parameters.DEST_TYPE, 'ODS'), variables('V_ODS_LOC'), concat(variables('V_RDS_STAGE_LOC'), '/', pipeline().parameters.SRC_TYPE, '-STAGE'))"
+					},
+					"FOLDER_FILE": {
+						"type": "string",
+						"defaultValue": "@if(equals(pipeline().parameters.DEST_TYPE, 'ODS'), pipeline().parameters.ODS_LOC, pipeline().parameters.DEST_TBL)"
+					}
+				},
+				"folder": {
+					"name": "DataSets_4_DIF"
+				},
+				"annotations": [],
+				"type": "Json",
+				"typeProperties": {
+					"location": {
+						"type": "AzureBlobFSLocation",
+						"folderPath": {
+							"value": "@dataset().FOLDER_FILE",
+							"type": "Expression"
+						},
+						"fileSystem": {
+							"value": "@dataset().CONTAINER",
+							"type": "Expression"
+						}
+					}
+				},
+				"schema": {}
+			},
+			"dependsOn": []
+		},
+		{
+			"name": "[concat(parameters('factoryName'), '/NNMi_Dataset')]",
+			"type": "Microsoft.DataFactory/factories/datasets",
+			"apiVersion": "2018-06-01",
+			"properties": {
+				"linkedServiceName": {
+					"referenceName": "ls_ftp_ntw_server_new",
+					"type": "LinkedServiceReference"
+				},
+				"folder": {
+					"name": "DataSets_4_DIF"
+				},
+				"annotations": [],
+				"type": "Binary",
+				"typeProperties": {
+					"location": {
+						"type": "FtpServerLocation",
+						"folderPath": "IN/NNMI"
+					},
+					"compression": {
+						"type": "gzip",
+						"level": "Fastest"
+					}
+				}
+			},
+			"dependsOn": []
+		},
+		{
+			"name": "[concat(parameters('factoryName'), '/NTW_FTP_Datasets')]",
+			"type": "Microsoft.DataFactory/factories/datasets",
+			"apiVersion": "2018-06-01",
+			"properties": {
+				"description": "Dataset to represent any files from NTW_FTP server",
+				"linkedServiceName": {
+					"referenceName": "ls_ftp_ntw_server",
+					"type": "LinkedServiceReference"
+				},
+				"parameters": {
+					"SRC_DATASET_PATH": {
+						"type": "String",
+						"defaultValue": "IN/"
+					}
+				},
+				"folder": {
+					"name": "DataSets_4_DIF"
+				},
+				"annotations": [],
+				"type": "Binary",
+				"typeProperties": {
+					"location": {
+						"type": "FtpServerLocation",
+						"folderPath": {
+							"value": "@dataset().SRC_DATASET_PATH",
+							"type": "Expression"
+						}
+					}
+				}
+			},
+			"dependsOn": []
+		},
+		{
+			"name": "[concat(parameters('factoryName'), '/ORA_Datasets')]",
+			"type": "Microsoft.DataFactory/factories/datasets",
+			"apiVersion": "2018-06-01",
+			"properties": {
+				"linkedServiceName": {
+					"referenceName": "ls_ora_db",
+					"type": "LinkedServiceReference",
+					"parameters": {
+						"hostNm": {
+							"value": "@dataset().hostNm",
+							"type": "Expression"
+						},
+						"port": {
+							"value": "@dataset().port",
+							"type": "Expression"
+						},
+						"serviceNm": {
+							"value": "@dataset().serviceNm",
+							"type": "Expression"
+						},
+						"pwd": {
+							"value": "@dataset().pwd",
+							"type": "Expression"
+						},
+						"UserNm": {
+							"value": "@dataset().userNm",
+							"type": "Expression"
+						}
+					}
+				},
+				"parameters": {
+					"hostNm": {
+						"type": "string"
+					},
+					"port": {
+						"type": "string"
+					},
+					"serviceNm": {
+						"type": "string"
+					},
+					"userNm": {
+						"type": "string"
+					},
+					"pwd": {
+						"type": "string"
+					}
+				},
+				"folder": {
+					"name": "DataSets_4_DIF"
+				},
+				"annotations": [],
+				"type": "OracleTable",
+				"schema": [],
+				"typeProperties": {}
+			},
+			"dependsOn": []
+		}
+	]
+}
